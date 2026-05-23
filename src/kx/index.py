@@ -3,7 +3,7 @@ import typer
 
 def resolve_index(state, index: int) -> str:
     try:
-        return state["names"][index - 1]
+        return state.names[index - 1]
     except IndexError:
         typer.echo("Invalid index")
         raise typer.Exit(1)

@@ -1,23 +1,23 @@
+from dataclasses import dataclass, asdict
 import json
 from pathlib import Path
 
 STATE_FILE = Path.home() / ".kx_state.json"
 
 
-def save_state(resource_type: str, names: list[str], namespace: str | None):
-    STATE_FILE.write_text(
-        json.dumps(
-            {
-                "resource_type": resource_type,
-                "names": names,
-                "namespace": namespace,
-            }
-        )
-    )
+@dataclass
+class KxState:
+    resource_type: str
+    names: list[str]
+    namespace: str = "default"
 
 
-def load_state():
+def save_state(state: KxState) -> None:
+    STATE_FILE.write_text(json.dumps(asdict(state)))
+
+
+def load_state() -> KxState:
     if not STATE_FILE.exists():
-        raise RuntimeError("No previous kx state found. Run `kx get` first.")
-
-    return json.loads(STATE_FILE.read_text())
+        raise RuntimeError("No state found. Run `kx get <resource>` first.")
+    data = json.loads(STATE_FILE.read_text())
+    return KxState(**data)
