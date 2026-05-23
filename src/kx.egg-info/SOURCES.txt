@@ -1,0 +1,10 @@
+README.md
+pyproject.toml
+src/kx/__init__.py
+src/kx/main.py
+src/kx.egg-info/PKG-INFO
+src/kx.egg-info/SOURCES.txt
+src/kx.egg-info/dependency_links.txt
+src/kx.egg-info/entry_points.txt
+src/kx.egg-info/requires.txt
+src/kx.egg-info/top_level.txt
