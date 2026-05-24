@@ -1,0 +1,30 @@
+name: PR Validation
+
+on:
+  pull_request:
+    branches: [ "main", "develop" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install build frontend
+        run: pip install build
+
+      - name: Install package
+        run: pip install -e .
+
+      - name: Build distribution
+        run: python -m build
