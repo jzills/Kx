@@ -2,11 +2,22 @@ import subprocess
 
 import typer
 
+from kx.commands.delete import DeleteCommand
+from kx.commands.describe import DescribeCommand
+from kx.commands.edit import EditCommand
+from kx.commands.events import EventsCommand
+from kx.commands.exec import ExecCommand
+from kx.commands.get import GetCommand
+from kx.commands.logs import LogsCommand
+from kx.commands.tree import TreeCommand
+from kx.commands.yaml import YamlCommand
+from kx.events import filter_events, get_events, normalize_kind
+from kx.graph import build_tree
 from kx.kubectl import run_kubectl, run_kubectl_interactive
 from kx.index import add_indexes, resolve_index
-from kx.state import KxState, save_state, load_state
+from kx.state import save_state, load_state
 
-app = typer.Typer(help="kx - kubectl extended with indexing")
+app = typer.Typer(help="kx - kubectl extended.")
 
 
 def _get_current_namespace() -> str:
@@ -32,13 +43,14 @@ def get(
     namespace: str = typer.Option(None, "-n", help="Kubernetes namespace"),
 ):
     """List resources and assign index numbers for use with other commands."""
-    if namespace is None:
-        namespace = _get_current_namespace()
+    command = GetCommand(
+        run_kubectl=run_kubectl,
+        add_indexes=add_indexes,
+        save_state=save_state,
+        get_namespace=_get_current_namespace,
+    )
 
-    output = run_kubectl(["get", resource, "-n", namespace])
-    indexed_output, names = add_indexes(output)
-    typer.echo(indexed_output)
-    save_state(KxState(resource_type=resource, names=names, namespace=namespace))
+    typer.echo(command.execute(resource, namespace))
 
 
 @app.command()
@@ -47,70 +59,54 @@ def describe(
     view: str = typer.Option("full", help="Output view: full or events"),
 ):
     """Show full kubectl describe output for an indexed resource."""
-    name, namespace, kind = _state_fields(index)
+    command = DescribeCommand(
+        state_fields=_state_fields,
+        get_events=get_events,
+        filter_events=filter_events,
+        run_kubectl_interactive=run_kubectl_interactive,
+    )
 
-    if view == "events":
-        from kx.events import get_events, filter_events
-
-        all_events = get_events(namespace)
-        events = filter_events(all_events, name, kind)
-
-        if not events:
-            typer.echo("No events found")
-            return
-
-        for e in events:
-            obj = e.involved_object
-            typer.echo(
-                f"{e.type:8} {e.reason:30} "
-                f"{obj.kind:10} {e.metadata.creation_timestamp} "
-                f"{e.message}"
-            )
-        return
-
-    subprocess.run(["kubectl", "describe", kind, name, "-n", namespace])
+    output = command.execute(index, view)
+    if output:
+        typer.echo(output)
 
 
 @app.command()
 def events(index: int):
     """Show Kubernetes events for an indexed resource."""
-    from kx.events import get_events, filter_events
+    command = EventsCommand(
+        state_fields=_state_fields,
+        get_events=get_events,
+        filter_events=filter_events,
+    )
 
-    name, namespace, kind = _state_fields(index)
-    all_events = get_events(namespace)
-    filtered = filter_events(all_events, name, kind)
-
-    if not filtered:
-        typer.echo("No events found")
-        return
-
-    for e in filtered:
-        obj = e.involved_object
-        typer.echo(
-            f"{e.type:8} {e.reason:30} "
-            f"{obj.kind:10} {e.metadata.creation_timestamp} "
-            f"{e.message}"
-        )
+    typer.echo(command.execute(index))
 
 
 @app.command()
 def logs(index: int):
     """Stream logs for an indexed pod."""
-    name, namespace, kind = _state_fields(index)
+    command = LogsCommand(
+        state_fields=_state_fields,
+        run_kubectl=run_kubectl,
+    )
 
-    if kind != "pod":
-        typer.echo("Logs are only supported on pods.")
+    try:
+        typer.echo(command.execute(index))
+    except ValueError as e:
+        typer.echo(str(e))
         raise typer.Exit(1)
-
-    args = ["logs", name, "-n", namespace]
-    typer.echo(run_kubectl(args))
 
 
 @app.command()
 def yaml(index: int):
     """Print the raw YAML manifest for an indexed resource."""
-    name, namespace, kind = _state_fields(index)
-    typer.echo(run_kubectl(["get", kind, name, "-n", namespace, "-o", "yaml"]))
+    command = YamlCommand(
+        state_fields=_state_fields,
+        run_kubectl=run_kubectl,
+    )
+
+    typer.echo(command.execute(index))
 
 
 @app.command()
@@ -119,18 +115,24 @@ def delete(
     yes: bool = typer.Option(False, "--yes", "-y", help="Skip confirmation prompt"),
 ):
     """Delete an indexed resource (prompts for confirmation unless --yes)."""
-    name, namespace, kind = _state_fields(index)
-    if not yes:
-        typer.confirm(f"Delete {kind}/{name} in {namespace}?", abort=True)
-    run_kubectl(["delete", kind, name, "-n", namespace])
-    typer.echo(f"Deleted {kind}/{name}")
+    command = DeleteCommand(
+        state_fields=_state_fields,
+        run_kubectl=run_kubectl,
+        confirm=lambda msg: typer.confirm(msg, abort=True),
+    )
+
+    typer.echo(command.execute(index, yes))
 
 
 @app.command()
 def edit(index: int):
     """Open an indexed resource in your editor via kubectl edit."""
-    name, namespace, kind = _state_fields(index)
-    run_kubectl_interactive(["edit", kind, name, "-n", namespace])
+    command = EditCommand(
+        state_fields=_state_fields,
+        run_kubectl_interactive=run_kubectl_interactive,
+    )
+
+    command.execute(index)
 
 
 @app.command(name="exec")
@@ -139,27 +141,30 @@ def exec_cmd(
     cmd: list[str] = typer.Argument(default=None, help="Command to run (default: bash with sh fallback)"),
 ):
     """Open an interactive shell in an indexed pod (bash, falling back to sh)."""
-    name, namespace, kind = _state_fields(index)
-    if kind.lower() not in ("pod", "pods"):
-        typer.echo("exec is only supported for pods.")
+    command = ExecCommand(
+        state_fields=_state_fields,
+        run_kubectl_interactive=run_kubectl_interactive,
+    )
+
+    try:
+        command.execute(index, cmd)
+    except ValueError as e:
+        typer.echo(str(e))
         raise typer.Exit(1)
-    if cmd:
-        run_kubectl_interactive(["exec", "-it", name, "-n", namespace, "--", *cmd])
-    else:
-        rc = run_kubectl_interactive(["exec", "-it", name, "-n", namespace, "--", "bash"])
-        if rc != 0:
-            run_kubectl_interactive(["exec", "-it", name, "-n", namespace, "--", "sh"])
 
 
 @app.command()
 def tree(index: int):
     """Show the ownership graph for an indexed resource (deployments, statefulsets, etc.)."""
-    from kx.events import normalize_kind
-    from kx.graph import build_tree
     from rich.console import Console
 
-    name, namespace, kind = _state_fields(index)
-    Console().print(build_tree(normalize_kind(kind), name, namespace))
+    command = TreeCommand(
+        state_fields=_state_fields,
+        build_tree=build_tree,
+        normalize_kind=normalize_kind,
+    )
+
+    Console().print(command.execute(index))
 
 
 if __name__ == "__main__":
