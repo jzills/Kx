@@ -1,4 +1,4 @@
-from kubernetes import client, config
+from kubernetes import config
 
 def load_k8s():
     try:
