@@ -1,4 +1,5 @@
 import subprocess
+from typing import Optional
 
 import typer
 
@@ -14,7 +15,7 @@ from kx.commands.yaml import YamlCommand
 from kx.events import filter_events, get_events, normalize_kind
 from kx.graph import build_tree
 from kx.kubectl import run_kubectl, run_kubectl_interactive
-from kx.index import add_indexes, resolve_index
+from kx.index import add_indexes, filter_names, resolve_index
 from kx.state import save_state, load_state
 
 app = typer.Typer(help="kx - kubectl extended.")
@@ -40,17 +41,19 @@ def _state_fields(index: int) -> tuple[str, str, str]:
 @app.command()
 def get(
     resource: str,
+    filter: Optional[str] = typer.Argument(None, help="Filter by name (substring match, case-insensitive)"),
     namespace: str = typer.Option(None, "-n", help="Kubernetes namespace"),
 ):
     """List resources and assign index numbers for use with other commands."""
     command = GetCommand(
         run_kubectl=run_kubectl,
         add_indexes=add_indexes,
+        filter_names=filter_names,
         save_state=save_state,
         get_namespace=_get_current_namespace,
     )
 
-    typer.echo(command.execute(resource, namespace))
+    typer.echo(command.execute(resource, namespace, filter))
 
 
 @app.command()
