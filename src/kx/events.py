@@ -25,6 +25,7 @@ _KIND_MAP = {
 
 
 def normalize_kind(resource_type: str) -> str:
+    """Map kubectl shorthand (e.g. 'pods', 'deploy', 'svc') to canonical Kubernetes kind names."""
     return _KIND_MAP.get(resource_type.lower(), resource_type)
 
 
