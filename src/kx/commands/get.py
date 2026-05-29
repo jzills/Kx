@@ -10,7 +10,6 @@ class GetCommand:
         self.get_namespace = get_namespace
 
     def execute(self, resource: str, namespace: str, filter_term: str | None = None) -> str:
-        """List resources and assign index numbers for use with other commands."""
         if namespace is None:
             namespace = self.get_namespace()
 
