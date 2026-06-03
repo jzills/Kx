@@ -10,6 +10,7 @@ from kx.commands.events import EventsCommand
 from kx.commands.exec import ExecCommand
 from kx.commands.get import GetCommand
 from kx.commands.logs import LogsCommand
+from kx.commands.port_forward import PortForwardCommand
 from kx.commands.tree import TreeCommand
 from kx.commands.yaml import YamlCommand
 from kx.events import filter_events, get_events, normalize_kind
@@ -168,6 +169,21 @@ def tree(index: int):
     )
 
     Console().print(command.execute(index))
+
+@app.command("port-forward")
+def port_forward(index: int, port: str):
+    """Port forward to the specificed resource at index."""
+    command = PortForwardCommand(
+        run_kubectl_interactive=run_kubectl_interactive,
+        state_fields=_state_fields,
+        normalize_kind=normalize_kind,
+    )
+
+    try:
+        command.execute(index, port)
+    except ValueError as e:
+        typer.echo(str(e))
+        raise typer.Exit(1)
 
 
 if __name__ == "__main__":
