@@ -1,5 +1,5 @@
 import pytest
-from click.exceptions import Exit as ClickExit
+from typer import Exit as ClickExit
 from unittest.mock import patch
 from kx.state import State, StateService
 
