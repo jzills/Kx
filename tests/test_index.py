@@ -133,3 +133,8 @@ class TestResolveIndex:
         state = State(resource_type="pods", names=["nginx"])
         with pytest.raises(ClickExit):
             resolve_index(state, 2)
+
+    def test_index_negative_raises(self):
+        state = State(resource_type="pods", names=["nginx"])
+        with pytest.raises(ClickExit):
+            resolve_index(state, -1)
