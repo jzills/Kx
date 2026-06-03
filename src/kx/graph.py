@@ -2,6 +2,7 @@ from kubernetes import client
 from rich.tree import Tree
 
 from kx.k8s import load_config
+from kx.kinds import Kind
 
 
 def build_tree(kind: str, name: str, namespace: str) -> Tree:
@@ -14,21 +15,22 @@ def build_tree(kind: str, name: str, namespace: str) -> Tree:
 
     pods = core.list_namespaced_pod(namespace).items
 
-    if kind == "Deployment":
-        _tree_deployment(name, namespace, root, apps, pods)
-    elif kind == "ReplicaSet":
-        _tree_replica_set(name, namespace, root, apps, pods)
-    elif kind == "StatefulSet":
-        _tree_stateful_set(name, namespace, root, apps, pods)
-    elif kind == "DaemonSet":
-        _tree_daemon_set(name, namespace, root, apps, pods)
-    elif kind == "CronJob":
-        _tree_cron_job(name, namespace, root, batch, pods)
-    elif kind == "Pod":
-        pod = core.read_namespaced_pod(name, namespace)
-        _add_containers(pod, root)
-    else:
-        root.add(f"[dim](no ownership graph for {kind})[/dim]")
+    match kind:
+        case Kind.Deployment:
+            _tree_deployment(name, namespace, root, apps, pods)
+        case Kind.ReplicaSet:
+            _tree_replica_set(name, namespace, root, apps, pods)
+        case Kind.StatefulSet:
+            _tree_stateful_set(name, namespace, root, apps, pods)
+        case Kind.DaemonSet:
+            _tree_daemon_set(name, namespace, root, apps, pods)
+        case Kind.CronJob:
+            _tree_cron_job(name, namespace, root, batch, pods)
+        case Kind.Pod:
+            pod = core.read_namespaced_pod(name, namespace)
+            _add_containers(pod, root)
+        case _:
+            root.add(f"[dim](no ownership graph for {kind})[/dim]")
 
     return root
 
