@@ -1,6 +1,10 @@
 import re
+from typing import TYPE_CHECKING, Protocol
 
 import typer
+
+if TYPE_CHECKING:
+    from kx.state import State
 
 
 def resolve_index(state, index: int) -> str:
@@ -33,41 +37,50 @@ def _parse_output(output: str) -> tuple[list[str], list[list[str]], int]:
     return headers, rows, name_idx
 
 
-def filter_names(output: str, term: str) -> str:
-    headers, rows, name_idx = _parse_output(output)
-    if not headers:
-        return output
-
-    filtered = [r for r in rows if term.lower() in r[name_idx].lower()]
-
-    all_rows = [headers] + filtered
-    if len(all_rows) == 1:
-        return output.splitlines()[0]
-
-    cols = list(zip(*all_rows))
-    widths = [max(len(cell) for cell in col) for col in cols]
-
-    def fmt(row):
-        return "  ".join(cell.ljust(widths[i]) for i, cell in enumerate(row))
-
-    return "\n".join(fmt(r) for r in all_rows)
+class IndexServiceProtocol(Protocol):
+    def add(self, output: str) -> tuple[str, list[str]]: ...
+    def filter(self, output: str, term: str) -> str: ...
+    def resolve(self, state: "State", index: int) -> str: ...
 
 
-def add_indexes(output: str) -> tuple[str, list[str]]:
-    headers, rows, name_idx = _parse_output(output)
-    if not headers:
-        return output, []
+class IndexService:
+    def add(self, output: str) -> tuple[str, list[str]]:
+        headers, rows, name_idx = _parse_output(output)
+        if not headers:
+            return output, []
 
-    names = [r[name_idx] for r in rows]
+        names = [r[name_idx] for r in rows]
 
-    headers = ["X"] + headers
-    rows = [[str(i + 1)] + r for i, r in enumerate(rows)]
+        headers = ["X"] + headers
+        rows = [[str(i + 1)] + r for i, r in enumerate(rows)]
 
-    all_rows = [headers] + rows
-    cols = list(zip(*all_rows))
-    widths = [max(len(cell) for cell in col) for col in cols]
+        all_rows = [headers] + rows
+        cols = list(zip(*all_rows))
+        widths = [max(len(cell) for cell in col) for col in cols]
 
-    def fmt(row):
-        return "  ".join(cell.ljust(widths[i]) for i, cell in enumerate(row))
+        def fmt(row: list[str]) -> str:
+            return "  ".join(cell.ljust(widths[i]) for i, cell in enumerate(row))
 
-    return "\n".join(fmt(r) for r in all_rows), names
+        return "\n".join(fmt(r) for r in all_rows), names
+
+    def filter(self, output: str, term: str) -> str:
+        headers, rows, name_idx = _parse_output(output)
+        if not headers:
+            return output
+
+        filtered = [r for r in rows if term.lower() in r[name_idx].lower()]
+
+        all_rows = [headers] + filtered
+        if len(all_rows) == 1:
+            return output.splitlines()[0]
+
+        cols = list(zip(*all_rows))
+        widths = [max(len(cell) for cell in col) for col in cols]
+
+        def fmt(row: list[str]) -> str:
+            return "  ".join(cell.ljust(widths[i]) for i, cell in enumerate(row))
+
+        return "\n".join(fmt(r) for r in all_rows)
+
+    def resolve(self, state: "State", index: int) -> str:
+        return resolve_index(state, index)

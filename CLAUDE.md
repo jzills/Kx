@@ -36,7 +36,7 @@ ruff check src/
 
 `kx` is a kubectl wrapper adding index-based resource selection. The workflow: `kx get <resource>` lists resources and saves state; all other commands resolve a numeric index back to a resource name from that saved state.
 
-**State flow:** `kx get` → `kubectl get` output → `add_indexes()` parses the NAME column and assigns 1-based indexes → `KxState` (resource_type, names, namespace) is persisted to `~/.kx_state.json` → subsequent commands call `_state_fields(index)` which loads state and resolves the name.
+**State flow:** `kx get` → `kubectl get` output → `IndexService.add()` parses the NAME column and assigns 1-based indexes → `State` (resource_type, names, namespace) is persisted to `~/.kx_state.json` via `StateService.save()` → subsequent commands call `StateService.fields(index)` which loads state and resolves the name.
 
 **Command pattern:** Each command in `src/kx/commands/` is a class injected with callables (`run_kubectl`, `save_state`, `get_events`, etc.) in `main.py`. This keeps commands testable without subprocess or filesystem side-effects. Commands receive only plain functions, not the module-level implementations.
 
