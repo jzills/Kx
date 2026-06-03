@@ -19,16 +19,17 @@ class StateServiceProtocol(Protocol):
     def fields(self, index: int) -> tuple[str, str, str]: ...
 
 
-class StateService:
-    _state_file = Path.home() / ".kx_state.json"
+_STATE_FILE = Path.home() / ".kx_state.json"
 
+
+class StateService:
     def save(self, state: State) -> None:
-        self._state_file.write_text(json.dumps(asdict(state)))
+        _STATE_FILE.write_text(json.dumps(asdict(state)))
 
     def load(self) -> State:
-        if not self._state_file.exists():
+        if not _STATE_FILE.exists():
             raise RuntimeError("No state found. Run `kx get <resource>` first.")
-        data = json.loads(self._state_file.read_text())
+        data = json.loads(_STATE_FILE.read_text())
         return State(**data)
 
     def fields(self, index: int) -> tuple[str, str, str]:
