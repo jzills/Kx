@@ -1,4 +1,3 @@
-import pytest
 from kx.kinds import Kind, normalize_kind
 
 
@@ -69,3 +68,27 @@ def test_normalize_kind_unknown_passthrough():
 def test_normalize_kind_unknown_preserves_original_case():
     result = normalize_kind("MyCustomResource")
     assert result == "MyCustomResource"
+
+
+def test_normalize_kind_cronjob():
+    assert normalize_kind("cronjob") == Kind.CronJob
+
+
+def test_normalize_kind_job():
+    assert normalize_kind("job") == Kind.Job
+
+
+def test_normalize_kind_ingress():
+    assert normalize_kind("ingress") == Kind.Ingress
+
+
+def test_normalize_kind_secret():
+    assert normalize_kind("secret") == Kind.Secret
+
+
+def test_normalize_kind_node():
+    assert normalize_kind("node") == Kind.Node
+
+
+def test_normalize_kind_namespace():
+    assert normalize_kind("namespace") == Kind.Namespace
