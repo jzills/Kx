@@ -1,8 +1,12 @@
+from kx.kubectl import KubectlServiceProtocol
+from kx.state import StateServiceProtocol
+
+
 class EditCommand:
-    def __init__(self, state_fields, run_kubectl_interactive):
-        self.state_fields = state_fields
-        self.run_kubectl_interactive = run_kubectl_interactive
+    def __init__(self, state: StateServiceProtocol, kubectl: KubectlServiceProtocol):
+        self.state = state
+        self.kubectl = kubectl
 
     def execute(self, index: int) -> None:
-        name, namespace, kind = self.state_fields(index)
-        self.run_kubectl_interactive(["edit", kind, name, "-n", namespace])
+        name, namespace, kind = self.state.fields(index)
+        self.kubectl.run_interactive(["edit", kind, name, "-n", namespace])

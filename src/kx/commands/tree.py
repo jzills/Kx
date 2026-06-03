@@ -1,12 +1,16 @@
 from rich.tree import Tree
 
+from kx.kubectl import KubectlServiceProtocol
+from kx.state import StateServiceProtocol
+from kx.types import BuildTree
+
 
 class TreeCommand:
-    def __init__(self, state_fields, build_tree, normalize_kind):
-        self.state_fields = state_fields
+    def __init__(self, state: StateServiceProtocol, kubectl: KubectlServiceProtocol, build_tree: BuildTree):
+        self.state = state
+        self.kubectl = kubectl
         self.build_tree = build_tree
-        self.normalize_kind = normalize_kind
 
     def execute(self, index: int) -> Tree:
-        name, namespace, kind = self.state_fields(index)
-        return self.build_tree(self.normalize_kind(kind), name, namespace)
+        name, namespace, kind = self.state.fields(index)
+        return self.build_tree(self.kubectl.normalize_kind(kind), name, namespace)

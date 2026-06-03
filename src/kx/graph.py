@@ -1,11 +1,11 @@
 from kubernetes import client
 from rich.tree import Tree
 
-from kx.k8s import load_k8s
+from kx.k8s import load_config
 
 
 def build_tree(kind: str, name: str, namespace: str) -> Tree:
-    load_k8s()
+    load_config()
     root = Tree(f"[bold]{kind}/{name}[/bold]")
 
     apps = client.AppsV1Api()

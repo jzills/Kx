@@ -1,13 +1,16 @@
+from kx.events import EventsServiceProtocol
+from kx.state import StateServiceProtocol
+
+
 class EventsCommand:
-    def __init__(self, state_fields, get_events, filter_events):
-        self.state_fields = state_fields
-        self.get_events = get_events
-        self.filter_events = filter_events
+    def __init__(self, state: StateServiceProtocol, events: EventsServiceProtocol):
+        self.state = state
+        self.events = events
 
     def execute(self, index: int) -> str:
-        name, namespace, kind = self.state_fields(index)
-        all_events = self.get_events(namespace)
-        filtered = self.filter_events(all_events, name, kind)
+        name, namespace, kind = self.state.fields(index)
+        all_events = self.events.get(namespace)
+        filtered = self.events.filter(all_events, name, kind)
 
         if not filtered:
             return "No events found"

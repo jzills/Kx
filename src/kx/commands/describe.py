@@ -1,22 +1,31 @@
+from kx.events import EventsServiceProtocol
+from kx.kubectl import KubectlServiceProtocol
+from kx.state import StateServiceProtocol
+
+
 class DescribeCommand:
-    def __init__(self, state_fields, get_events, filter_events, run_kubectl_interactive):
-        self.state_fields = state_fields
-        self.get_events = get_events
-        self.filter_events = filter_events
-        self.run_kubectl_interactive = run_kubectl_interactive
+    def __init__(
+        self,
+        state: StateServiceProtocol,
+        events: EventsServiceProtocol,
+        kubectl: KubectlServiceProtocol,
+    ):
+        self.state = state
+        self.events = events
+        self.kubectl = kubectl
 
     def execute(self, index: int, view: str) -> str | None:
-        name, namespace, kind = self.state_fields(index)
+        name, namespace, kind = self.state.fields(index)
 
         if view == "events":
-            all_events = self.get_events(namespace)
-            events = self.filter_events(all_events, name, kind)
+            all_events = self.events.get(namespace)
+            filtered = self.events.filter(all_events, name, kind)
 
-            if not events:
+            if not filtered:
                 return "No events found"
 
             output = []
-            for e in events:
+            for e in filtered:
                 obj = e.involved_object
                 output.append(
                     f"{e.type:8} {e.reason:30} "
@@ -25,5 +34,5 @@ class DescribeCommand:
                 )
             return "\n".join(output)
 
-        self.run_kubectl_interactive(["describe", kind, name, "-n", namespace])
+        self.kubectl.run_interactive(["describe", kind, name, "-n", namespace])
         return None
