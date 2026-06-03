@@ -29,6 +29,9 @@ jobs:
       - name: Install build tools
         run: pip install build twine
 
+      - name: Install dev dependencies and run tests
+        run: pip install -e ".[dev]" && pytest -v
+
       - name: Set version in pyproject.toml
         run: |
           sed -i "s/^version = .*/version = \"${{ steps.version.outputs.value }}\"/" pyproject.toml
