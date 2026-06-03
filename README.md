@@ -41,6 +41,7 @@ All subsequent commands reference resources by their `X` index from the last `kx
 | `kx edit <index>` | Open the resource in your editor via `kubectl edit` |
 | `kx delete <index> [-y]` | Delete the resource (prompts for confirmation; `-y` skips it) |
 | `kx tree <index>` | Show the ownership graph for a resource |
+| `kx port-forward <index> <port>` | Forward a local port to a resource (supports Pod, Deployment, ReplicaSet, StatefulSet, DaemonSet, Service) |
 
 ### Example workflow
 
@@ -57,6 +58,10 @@ kx get pods
 kx logs 1
 kx exec 1            # opens bash/sh
 kx exec 1 -- env     # run a specific command
+
+# forward local port 8080 to port 80 on a service
+kx get services
+kx port-forward 2 8080:80
 
 # clean up
 kx delete 3
