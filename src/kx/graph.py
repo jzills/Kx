@@ -2,6 +2,7 @@ from kubernetes import client
 from rich.tree import Tree
 
 from kx.k8s import load_config
+from kx.kinds import Kind
 
 
 def build_tree(kind: str, name: str, namespace: str) -> Tree:
@@ -14,17 +15,17 @@ def build_tree(kind: str, name: str, namespace: str) -> Tree:
 
     pods = core.list_namespaced_pod(namespace).items
 
-    if kind == "Deployment":
+    if kind == Kind.Deployment:
         _tree_deployment(name, namespace, root, apps, pods)
-    elif kind == "ReplicaSet":
+    elif kind == Kind.ReplicaSet:
         _tree_replica_set(name, namespace, root, apps, pods)
-    elif kind == "StatefulSet":
+    elif kind == Kind.StatefulSet:
         _tree_stateful_set(name, namespace, root, apps, pods)
-    elif kind == "DaemonSet":
+    elif kind == Kind.DaemonSet:
         _tree_daemon_set(name, namespace, root, apps, pods)
-    elif kind == "CronJob":
+    elif kind == Kind.CronJob:
         _tree_cron_job(name, namespace, root, batch, pods)
-    elif kind == "Pod":
+    elif kind == Kind.Pod:
         pod = core.read_namespaced_pod(name, namespace)
         _add_containers(pod, root)
     else:

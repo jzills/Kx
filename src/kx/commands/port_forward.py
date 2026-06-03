@@ -1,7 +1,8 @@
+from kx.kinds import Kind
 from kx.kubectl import KubectlServiceProtocol
 from kx.state import StateServiceProtocol
 
-_SUPPORTED_KINDS = {"Pod", "Deployment", "ReplicaSet", "StatefulSet", "DaemonSet", "Service"}
+_SUPPORTED_KINDS = {Kind.Pod, Kind.Deployment, Kind.ReplicaSet, Kind.StatefulSet, Kind.DaemonSet, Kind.Service}
 
 
 class PortForwardCommand:

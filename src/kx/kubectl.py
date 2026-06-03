@@ -1,26 +1,28 @@
 import subprocess
 from typing import Protocol
 
-_KIND_MAP = {
-    "pod": "Pod", "pods": "Pod",
-    "deployment": "Deployment", "deployments": "Deployment", "deploy": "Deployment",
-    "replicaset": "ReplicaSet", "replicasets": "ReplicaSet", "rs": "ReplicaSet",
-    "statefulset": "StatefulSet", "statefulsets": "StatefulSet", "sts": "StatefulSet",
-    "daemonset": "DaemonSet", "daemonsets": "DaemonSet", "ds": "DaemonSet",
-    "hpa": "HorizontalPodAutoscaler",
-    "horizontalpodautoscaler": "HorizontalPodAutoscaler",
-    "horizontalpodautoscalers": "HorizontalPodAutoscaler",
-    "service": "Service", "services": "Service", "svc": "Service",
-    "ingress": "Ingress", "ingresses": "Ingress",
-    "configmap": "ConfigMap", "configmaps": "ConfigMap", "cm": "ConfigMap",
-    "secret": "Secret", "secrets": "Secret",
-    "job": "Job", "jobs": "Job",
-    "cronjob": "CronJob", "cronjobs": "CronJob",
-    "pvc": "PersistentVolumeClaim",
-    "persistentvolumeclaim": "PersistentVolumeClaim",
-    "persistentvolumeclaims": "PersistentVolumeClaim",
-    "node": "Node", "nodes": "Node",
-    "namespace": "Namespace", "namespaces": "Namespace",
+from kx.kinds import Kind
+
+_KIND_MAP: dict[str, Kind] = {
+    "po": Kind.Pod, "pod": Kind.Pod, "pods": Kind.Pod,
+    "deployment": Kind.Deployment, "deployments": Kind.Deployment, "deploy": Kind.Deployment,
+    "replicaset": Kind.ReplicaSet, "replicasets": Kind.ReplicaSet, "rs": Kind.ReplicaSet,
+    "statefulset": Kind.StatefulSet, "statefulsets": Kind.StatefulSet, "sts": Kind.StatefulSet,
+    "daemonset": Kind.DaemonSet, "daemonsets": Kind.DaemonSet, "ds": Kind.DaemonSet,
+    "hpa": Kind.HorizontalPodAutoscaler,
+    "horizontalpodautoscaler": Kind.HorizontalPodAutoscaler,
+    "horizontalpodautoscalers": Kind.HorizontalPodAutoscaler,
+    "service": Kind.Service, "services": Kind.Service, "svc": Kind.Service,
+    "ingress": Kind.Ingress, "ingresses": Kind.Ingress,
+    "configmap": Kind.ConfigMap, "configmaps": Kind.ConfigMap, "cm": Kind.ConfigMap,
+    "secret": Kind.Secret, "secrets": Kind.Secret,
+    "job": Kind.Job, "jobs": Kind.Job,
+    "cronjob": Kind.CronJob, "cronjobs": Kind.CronJob,
+    "pvc": Kind.PersistentVolumeClaim,
+    "persistentvolumeclaim": Kind.PersistentVolumeClaim,
+    "persistentvolumeclaims": Kind.PersistentVolumeClaim,
+    "node": Kind.Node, "nodes": Kind.Node,
+    "namespace": Kind.Namespace, "namespaces": Kind.Namespace,
 }
 
 
