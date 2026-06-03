@@ -62,5 +62,5 @@ _KIND_MAP: dict[str, Kind] = {
 }
 
 
-def normalize_kind(resource_type: str) -> str:
+def normalize_kind(resource_type: str) -> Kind | str:
     return _KIND_MAP.get(resource_type.lower(), resource_type)

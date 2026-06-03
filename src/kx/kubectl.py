@@ -1,14 +1,14 @@
 import subprocess
 from typing import Protocol
 
-from kx.kinds import normalize_kind
+from kx.kinds import Kind, normalize_kind
 
 
 class KubectlServiceProtocol(Protocol):
     def run(self, args: list[str]) -> str: ...
     def run_interactive(self, args: list[str]) -> int: ...
     def current_namespace(self) -> str: ...
-    def normalize_kind(self, resource_type: str) -> str: ...
+    def normalize_kind(self, resource_type: str) -> Kind | str: ...
 
 
 class KubectlService:
@@ -35,5 +35,5 @@ class KubectlService:
         ns = result.stdout.strip()
         return ns if ns else "default"
 
-    def normalize_kind(self, resource_type: str) -> str:
+    def normalize_kind(self, resource_type: str) -> Kind | str:
         return normalize_kind(resource_type)
