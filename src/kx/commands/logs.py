@@ -8,8 +8,8 @@ class LogsCommand:
         self.state = state
         self.kubectl = kubectl
 
-    def execute(self, index: int, extra_args: list[str] | None = None) -> None:
+    def execute(self, index: int, extra_args: list[str] = []) -> None:
         name, namespace, kind = self.state.fields(index)
         if self.kubectl.normalize_kind(kind) != Kind.Pod:
             raise ValueError("Logs are only supported on pods.")
-        self.kubectl.run_interactive(["logs", name, "-n", namespace, *(extra_args or [])])
+        self.kubectl.run_interactive(["logs", name, "-n", namespace, *extra_args])
