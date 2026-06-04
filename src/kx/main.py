@@ -56,12 +56,12 @@ def events(index: int):
     typer.echo(command.execute(index))
 
 
-@app.command()
-def logs(index: int):
+@app.command(context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
+def logs(ctx: typer.Context, index: int):
     """Stream logs for an indexed pod."""
     command = LogsCommand(state=_state, kubectl=_kubectl)
     try:
-        typer.echo(command.execute(index))
+        command.execute(index, ctx.args)
     except ValueError as e:
         typer.echo(str(e))
         raise typer.Exit(1)
