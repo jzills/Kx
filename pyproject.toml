@@ -1,6 +1,8 @@
 [project]
 name = "kx-cli"
 version = "0.1.0"
+description = "kubectl wrapper with index-based resource selection"
+readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "typer",
