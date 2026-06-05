@@ -85,11 +85,11 @@ def delete(
     typer.echo(command.execute(index, yes))
 
 
-@app.command()
-def edit(index: int):
+@app.command(context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
+def edit(ctx: typer.Context, index: int):
     """Open an indexed resource in your editor via kubectl edit."""
     command = EditCommand(state=_state, kubectl=_kubectl)
-    command.execute(index)
+    command.execute(index, ctx.args)
 
 
 @app.command(name="exec")
