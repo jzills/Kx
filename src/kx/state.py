@@ -8,7 +8,7 @@ from kx.index import resolve_index
 
 @dataclass
 class State:
-    resource_type: str
+    kind: str
     names: list[str]
     namespace: str = "default"
 
@@ -35,4 +35,4 @@ class StateService:
     def fields(self, index: int) -> tuple[str, str, str]:
         state = self.load()
         name = resolve_index(state, index)
-        return name, state.namespace, state.resource_type
+        return name, state.namespace, state.kind
