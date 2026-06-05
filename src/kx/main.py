@@ -1,116 +1,74 @@
-import subprocess
+from typing import Optional
 
 import typer
 
-from kx.kubectl import run_kubectl, run_kubectl_interactive
-from kx.index import add_indexes, resolve_index
-from kx.state import KxState, save_state, load_state
+from kx.commands.delete import DeleteCommand
+from kx.commands.describe import DescribeCommand
+from kx.commands.edit import EditCommand
+from kx.commands.events import EventsCommand
+from kx.commands.exec import ExecCommand
+from kx.commands.get import GetCommand
+from kx.commands.logs import LogsCommand
+from kx.commands.port_forward import PortForwardCommand
+from kx.commands.state import StateCommand
+from kx.commands.tree import TreeCommand
+from kx.commands.yaml import YamlCommand
+from kx.events import EventsService
+from kx.graph import build_tree
+from kx.index import IndexService
+from kx.kubectl import KubectlService
+from kx.state import StateService
 
-app = typer.Typer(help="kx - kubectl extended with indexing")
+app = typer.Typer(help="kx - kubectl extended.")
+
+_kubectl = KubectlService()
+_state   = StateService()
+_events  = EventsService()
+_index   = IndexService()
 
 
-def _get_current_namespace() -> str:
-    result = subprocess.run(
-        ["kubectl", "config", "view", "--minify", "-o", "jsonpath={..namespace}"],
-        capture_output=True,
-        text=True,
-        check=True,
-    )
-    ns = result.stdout.strip()
-    return ns if ns else "default"
-
-
-def _state_fields(index: int) -> tuple[str, str, str]:
-    state = load_state()
-    name = resolve_index(state, index)
-    return name, state.namespace, state.resource_type
-
-
-@app.command()
+@app.command(context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
 def get(
+    ctx: typer.Context,
     resource: str,
+    filter: Optional[str] = typer.Argument(None, help="Filter by name (substring match, case-insensitive)"),
     namespace: str = typer.Option(None, "-n", help="Kubernetes namespace"),
 ):
     """List resources and assign index numbers for use with other commands."""
-    if namespace is None:
-        namespace = _get_current_namespace()
-
-    output = run_kubectl(["get", resource, "-n", namespace])
-    indexed_output, names = add_indexes(output)
-    typer.echo(indexed_output)
-    save_state(KxState(resource_type=resource, names=names, namespace=namespace))
+    command = GetCommand(kubectl=_kubectl, state=_state, index=_index)
+    typer.echo(command.execute(resource, namespace, filter, ctx.args))
 
 
-@app.command()
-def describe(
-    index: int,
-    view: str = typer.Option("full", help="Output view: full or events"),
-):
+@app.command(context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
+def describe(ctx: typer.Context, index: int):
     """Show full kubectl describe output for an indexed resource."""
-    name, namespace, kind = _state_fields(index)
-
-    if view == "events":
-        from kx.events import get_events, filter_events
-
-        all_events = get_events(namespace)
-        events = filter_events(all_events, name, kind)
-
-        if not events:
-            typer.echo("No events found")
-            return
-
-        for e in events:
-            obj = e.involved_object
-            typer.echo(
-                f"{e.type:8} {e.reason:30} "
-                f"{obj.kind:10} {e.metadata.creation_timestamp} "
-                f"{e.message}"
-            )
-        return
-
-    subprocess.run(["kubectl", "describe", kind, name, "-n", namespace])
+    command = DescribeCommand(state=_state, kubectl=_kubectl)
+    command.execute(index, ctx.args)
 
 
 @app.command()
 def events(index: int):
     """Show Kubernetes events for an indexed resource."""
-    from kx.events import get_events, filter_events
-
-    name, namespace, kind = _state_fields(index)
-    all_events = get_events(namespace)
-    filtered = filter_events(all_events, name, kind)
-
-    if not filtered:
-        typer.echo("No events found")
-        return
-
-    for e in filtered:
-        obj = e.involved_object
-        typer.echo(
-            f"{e.type:8} {e.reason:30} "
-            f"{obj.kind:10} {e.metadata.creation_timestamp} "
-            f"{e.message}"
-        )
+    command = EventsCommand(state=_state, events=_events)
+    typer.echo(command.execute(index))
 
 
-@app.command()
-def logs(index: int):
+@app.command(context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
+def logs(ctx: typer.Context, index: int):
     """Stream logs for an indexed pod."""
-    name, namespace, kind = _state_fields(index)
-
-    if kind != "pod":
-        typer.echo("Logs are only supported on pods.")
+    command = LogsCommand(state=_state, kubectl=_kubectl)
+    try:
+        command.execute(index, ctx.args)
+    except ValueError as e:
+        typer.echo(str(e))
         raise typer.Exit(1)
-
-    args = ["logs", name, "-n", namespace]
-    typer.echo(run_kubectl(args))
 
 
 @app.command()
 def yaml(index: int):
     """Print the raw YAML manifest for an indexed resource."""
-    name, namespace, kind = _state_fields(index)
-    typer.echo(run_kubectl(["get", kind, name, "-n", namespace, "-o", "yaml"]))
+    command = YamlCommand(state=_state, kubectl=_kubectl)
+    typer.echo(command.execute(index))
 
 
 @app.command()
@@ -119,47 +77,65 @@ def delete(
     yes: bool = typer.Option(False, "--yes", "-y", help="Skip confirmation prompt"),
 ):
     """Delete an indexed resource (prompts for confirmation unless --yes)."""
-    name, namespace, kind = _state_fields(index)
-    if not yes:
-        typer.confirm(f"Delete {kind}/{name} in {namespace}?", abort=True)
-    run_kubectl(["delete", kind, name, "-n", namespace])
-    typer.echo(f"Deleted {kind}/{name}")
+    command = DeleteCommand(
+        state=_state,
+        kubectl=_kubectl,
+        confirm=lambda msg: typer.confirm(msg, abort=True),
+    )
+    typer.echo(command.execute(index, yes))
 
 
-@app.command()
-def edit(index: int):
+@app.command(context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
+def edit(ctx: typer.Context, index: int):
     """Open an indexed resource in your editor via kubectl edit."""
-    name, namespace, kind = _state_fields(index)
-    run_kubectl_interactive(["edit", kind, name, "-n", namespace])
+    command = EditCommand(state=_state, kubectl=_kubectl)
+    command.execute(index, ctx.args)
 
 
-@app.command(name="exec")
+@app.command(name="exec", context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
 def exec_cmd(
+    ctx: typer.Context,
     index: int,
     cmd: list[str] = typer.Argument(default=None, help="Command to run (default: bash with sh fallback)"),
 ):
     """Open an interactive shell in an indexed pod (bash, falling back to sh)."""
-    name, namespace, kind = _state_fields(index)
-    if kind.lower() not in ("pod", "pods"):
-        typer.echo("exec is only supported for pods.")
+    command = ExecCommand(state=_state, kubectl=_kubectl)
+    try:
+        command.execute(index, cmd, ctx.args)
+    except ValueError as e:
+        typer.echo(str(e))
         raise typer.Exit(1)
-    if cmd:
-        run_kubectl_interactive(["exec", "-it", name, "-n", namespace, "--", *cmd])
-    else:
-        rc = run_kubectl_interactive(["exec", "-it", name, "-n", namespace, "--", "bash"])
-        if rc != 0:
-            run_kubectl_interactive(["exec", "-it", name, "-n", namespace, "--", "sh"])
 
 
 @app.command()
 def tree(index: int):
     """Show the ownership graph for an indexed resource (deployments, statefulsets, etc.)."""
-    from kx.events import normalize_kind
-    from kx.graph import build_tree
     from rich.console import Console
 
-    name, namespace, kind = _state_fields(index)
-    Console().print(build_tree(normalize_kind(kind), name, namespace))
+    command = TreeCommand(state=_state, kubectl=_kubectl, build_tree=build_tree)
+    Console().print(command.execute(index))
+
+
+@app.command("port-forward", context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
+def port_forward(ctx: typer.Context, index: int, port: str):
+    """Port forward to the specified resource at index."""
+    command = PortForwardCommand(kubectl=_kubectl, state=_state)
+    try:
+        command.execute(index, port, ctx.args)
+    except ValueError as e:
+        typer.echo(str(e))
+        raise typer.Exit(1)
+    
+@app.command()
+def state():
+    """Show the current state file."""
+    command = StateCommand(state=_state)
+    try:
+        state = command.execute()
+        typer.echo(state)
+    except RuntimeError as e:
+        typer.echo(str(e))
+        raise typer.Exit(1)
 
 
 if __name__ == "__main__":

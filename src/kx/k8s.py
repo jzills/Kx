@@ -1,6 +1,6 @@
-from kubernetes import client, config
+from kubernetes import config
 
-def load_k8s():
+def load_config():
     try:
         config.load_kube_config()
     except Exception:
