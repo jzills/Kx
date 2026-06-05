@@ -1,3 +1,5 @@
+from dataclasses import asdict
+import json
 from typing import Optional
 
 import typer
@@ -10,6 +12,7 @@ from kx.commands.exec import ExecCommand
 from kx.commands.get import GetCommand
 from kx.commands.logs import LogsCommand
 from kx.commands.port_forward import PortForwardCommand
+from kx.commands.state import StateCommand
 from kx.commands.tree import TreeCommand
 from kx.commands.yaml import YamlCommand
 from kx.events import EventsService
@@ -125,6 +128,17 @@ def port_forward(index: int, port: str):
     try:
         command.execute(index, port)
     except ValueError as e:
+        typer.echo(str(e))
+        raise typer.Exit(1)
+    
+@app.command()
+def state():
+    """Show the current state file."""
+    command = StateCommand(state=_state)
+    try:
+        state = command.execute()
+        typer.echo(state)
+    except RuntimeError as e:
         typer.echo(str(e))
         raise typer.Exit(1)
 
