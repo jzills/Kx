@@ -1,4 +1,5 @@
 from kx.index import IndexServiceProtocol
+from kx.kinds import normalize_kind
 from kx.kubectl import KubectlServiceProtocol
 from kx.state import State, StateServiceProtocol
 
@@ -22,5 +23,5 @@ class GetCommand:
         if filter_term:
             output = self.index.filter(output, filter_term)
         indexed_output, names = self.index.add(output)
-        self.state.save(State(resource_type=resource, names=names, namespace=namespace))
+        self.state.save(State(kind=str(normalize_kind(resource)), names=names, namespace=namespace))
         return indexed_output

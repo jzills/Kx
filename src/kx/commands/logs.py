@@ -10,6 +10,6 @@ class LogsCommand:
 
     def execute(self, index: int, extra_args: list[str] = []) -> None:
         name, namespace, kind = self.state.fields(index)
-        if self.kubectl.normalize_kind(kind) != Kind.Pod:
+        if kind != Kind.Pod:
             raise ValueError("Logs are only supported on pods.")
         self.kubectl.run_interactive(["logs", name, "-n", namespace, *extra_args])
