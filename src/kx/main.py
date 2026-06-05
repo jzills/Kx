@@ -116,12 +116,12 @@ def tree(index: int):
     Console().print(command.execute(index))
 
 
-@app.command("port-forward")
-def port_forward(index: int, port: str):
-    """Port forward to the specificed resource at index."""
+@app.command("port-forward", context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
+def port_forward(ctx: typer.Context, index: int, port: str):
+    """Port forward to the specified resource at index."""
     command = PortForwardCommand(kubectl=_kubectl, state=_state)
     try:
-        command.execute(index, port)
+        command.execute(index, port, ctx.args)
     except ValueError as e:
         typer.echo(str(e))
         raise typer.Exit(1)
