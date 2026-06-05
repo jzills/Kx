@@ -39,11 +39,11 @@ def get(
     typer.echo(command.execute(resource, namespace, filter, ctx.args))
 
 
-@app.command()
-def describe(index: int):
+@app.command(context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
+def describe(ctx: typer.Context, index: int):
     """Show full kubectl describe output for an indexed resource."""
     command = DescribeCommand(state=_state, kubectl=_kubectl)
-    command.execute(index)
+    command.execute(index, ctx.args)
 
 
 @app.command()
