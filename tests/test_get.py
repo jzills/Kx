@@ -13,6 +13,29 @@ def _make_command(kubectl_output="NAME\nnginx"):
     return GetCommand(kubectl=kubectl, state=state, index=index), state, kubectl
 
 
+class TestGetCommandExtraArgs:
+    def test_extra_args_passed_through(self):
+        cmd, _, kubectl = _make_command()
+        cmd.execute("pods", "default", extra_args=["-o", "wide"])
+        kubectl.run.assert_called_once_with(["get", "pods", "-n", "default", "-o", "wide"])
+
+    def test_multiple_extra_args(self):
+        cmd, _, kubectl = _make_command()
+        cmd.execute("pods", "default", extra_args=["--field-selector", "status.phase=Running"])
+        kubectl.run.assert_called_once_with(
+            ["get", "pods", "-n", "default", "--field-selector", "status.phase=Running"]
+        )
+
+
+class TestGetCommandNonTabularOutput:
+    def test_json_output_does_not_save_state(self):
+        cmd, state, kubectl = _make_command()
+        cmd.index.add.return_value = ('{\n  "items": []\n}', [])
+        kubectl.run.return_value = '{\n  "items": []\n}'
+        cmd.execute("pods", "default", extra_args=["-o", "json"])
+        state.save.assert_not_called()
+
+
 class TestGetCommandNormalizesKind:
     def test_alias_normalized_to_canonical_kind(self):
         cmd, state, _ = _make_command()

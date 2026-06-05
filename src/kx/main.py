@@ -27,22 +27,23 @@ _events  = EventsService()
 _index   = IndexService()
 
 
-@app.command()
+@app.command(context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
 def get(
+    ctx: typer.Context,
     resource: str,
     filter: Optional[str] = typer.Argument(None, help="Filter by name (substring match, case-insensitive)"),
     namespace: str = typer.Option(None, "-n", help="Kubernetes namespace"),
 ):
     """List resources and assign index numbers for use with other commands."""
     command = GetCommand(kubectl=_kubectl, state=_state, index=_index)
-    typer.echo(command.execute(resource, namespace, filter))
+    typer.echo(command.execute(resource, namespace, filter, ctx.args))
 
 
-@app.command()
-def describe(index: int):
+@app.command(context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
+def describe(ctx: typer.Context, index: int):
     """Show full kubectl describe output for an indexed resource."""
     command = DescribeCommand(state=_state, kubectl=_kubectl)
-    command.execute(index)
+    command.execute(index, ctx.args)
 
 
 @app.command()
@@ -84,22 +85,23 @@ def delete(
     typer.echo(command.execute(index, yes))
 
 
-@app.command()
-def edit(index: int):
+@app.command(context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
+def edit(ctx: typer.Context, index: int):
     """Open an indexed resource in your editor via kubectl edit."""
     command = EditCommand(state=_state, kubectl=_kubectl)
-    command.execute(index)
+    command.execute(index, ctx.args)
 
 
-@app.command(name="exec")
+@app.command(name="exec", context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
 def exec_cmd(
+    ctx: typer.Context,
     index: int,
     cmd: list[str] = typer.Argument(default=None, help="Command to run (default: bash with sh fallback)"),
 ):
     """Open an interactive shell in an indexed pod (bash, falling back to sh)."""
     command = ExecCommand(state=_state, kubectl=_kubectl)
     try:
-        command.execute(index, cmd)
+        command.execute(index, cmd, ctx.args)
     except ValueError as e:
         typer.echo(str(e))
         raise typer.Exit(1)
@@ -114,12 +116,12 @@ def tree(index: int):
     Console().print(command.execute(index))
 
 
-@app.command("port-forward")
-def port_forward(index: int, port: str):
-    """Port forward to the specificed resource at index."""
+@app.command("port-forward", context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
+def port_forward(ctx: typer.Context, index: int, port: str):
+    """Port forward to the specified resource at index."""
     command = PortForwardCommand(kubectl=_kubectl, state=_state)
     try:
-        command.execute(index, port)
+        command.execute(index, port, ctx.args)
     except ValueError as e:
         typer.echo(str(e))
         raise typer.Exit(1)

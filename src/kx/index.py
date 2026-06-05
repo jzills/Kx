@@ -26,6 +26,8 @@ def _parse_output(output: str) -> tuple[list[str], list[list[str]], int]:
     header = lines[0]
     spans = [(m.start(), m.end()) for m in re.finditer(r"\S+\s*", header)]
     headers = [header[s:e].strip() for s, e in spans]
+    if "NAME" not in headers:
+        return [], [], 0
     name_idx = headers.index("NAME")
 
     rows = []
