@@ -92,15 +92,16 @@ def edit(ctx: typer.Context, index: int):
     command.execute(index, ctx.args)
 
 
-@app.command(name="exec")
+@app.command(name="exec", context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
 def exec_cmd(
+    ctx: typer.Context,
     index: int,
     cmd: list[str] = typer.Argument(default=None, help="Command to run (default: bash with sh fallback)"),
 ):
     """Open an interactive shell in an indexed pod (bash, falling back to sh)."""
     command = ExecCommand(state=_state, kubectl=_kubectl)
     try:
-        command.execute(index, cmd)
+        command.execute(index, cmd, ctx.args)
     except ValueError as e:
         typer.echo(str(e))
         raise typer.Exit(1)
