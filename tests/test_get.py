@@ -27,6 +27,15 @@ class TestGetCommandExtraArgs:
         )
 
 
+class TestGetCommandNonTabularOutput:
+    def test_json_output_does_not_save_state(self):
+        cmd, state, kubectl = _make_command()
+        cmd.index.add.return_value = ('{\n  "items": []\n}', [])
+        kubectl.run.return_value = '{\n  "items": []\n}'
+        cmd.execute("pods", "default", extra_args=["-o", "json"])
+        state.save.assert_not_called()
+
+
 class TestGetCommandNormalizesKind:
     def test_alias_normalized_to_canonical_kind(self):
         cmd, state, _ = _make_command()

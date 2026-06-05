@@ -72,6 +72,18 @@ class TestIndexServiceAdd:
         assert output == ""
         assert names == []
 
+    def test_add_json_output_returns_raw(self):
+        json_output = '{\n  "items": []\n}'
+        result_output, names = self.svc.add(json_output)
+        assert result_output == json_output
+        assert names == []
+
+    def test_add_yaml_output_returns_raw(self):
+        yaml_output = "apiVersion: v1\nkind: List\nitems: []"
+        result_output, names = self.svc.add(yaml_output)
+        assert result_output == yaml_output
+        assert names == []
+
     def test_add_single_row(self):
         output, names = self.svc.add(SINGLE_ROW_OUTPUT)
         assert names == ["only-pod-abc"]
