@@ -33,7 +33,7 @@ All subsequent commands reference resources by their `X` index from the last `kx
 | Command | Description |
 |---|---|
 | `kx get <resource> [-n ns]` | List resources with index numbers |
-| `kx describe <index> [--view events]` | Show `kubectl describe` output; `--view events` filters to events only |
+| `kx describe <index>` | Show `kubectl describe` output for an indexed resource |
 | `kx events <index>` | Show Kubernetes events for the resource |
 | `kx logs <index>` | Stream logs for a pod |
 | `kx yaml <index>` | Print the raw YAML manifest |
@@ -42,6 +42,7 @@ All subsequent commands reference resources by their `X` index from the last `kx
 | `kx delete <index> [-y]` | Delete the resource (prompts for confirmation; `-y` skips it) |
 | `kx tree <index>` | Show the ownership graph for a resource |
 | `kx port-forward <index> <port>` | Forward a local port to a resource (supports Pod, Deployment, ReplicaSet, StatefulSet, DaemonSet, Service) |
+| `kx state` | Show the current state (last `kx get` result) as JSON |
 
 ### Example workflow
 

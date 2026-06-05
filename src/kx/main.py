@@ -39,15 +39,10 @@ def get(
 
 
 @app.command()
-def describe(
-    index: int,
-    view: str = typer.Option("full", help="Output view: full or events"),
-):
+def describe(index: int):
     """Show full kubectl describe output for an indexed resource."""
-    command = DescribeCommand(state=_state, events=_events, kubectl=_kubectl)
-    output = command.execute(index, view)
-    if output:
-        typer.echo(output)
+    command = DescribeCommand(state=_state, kubectl=_kubectl)
+    command.execute(index)
 
 
 @app.command()
