@@ -4,11 +4,10 @@ from kx.commands.logs import LogsCommand
 from kx.kinds import Kind
 
 
-def _make_command(name="nginx", namespace="default", kind="pods"):
+def _make_command(name="nginx", namespace="default", kind=str(Kind.Pod)):
     state = MagicMock()
     state.fields.return_value = (name, namespace, kind)
     kubectl = MagicMock()
-    kubectl.normalize_kind.return_value = Kind.Pod
     kubectl.run_interactive.return_value = 0
     return LogsCommand(state=state, kubectl=kubectl), state, kubectl
 
@@ -37,8 +36,7 @@ class TestLogsCommand:
         assert result is None
 
     def test_non_pod_raises_value_error(self):
-        cmd, _, kubectl = _make_command(kind="deployments")
-        kubectl.normalize_kind.return_value = Kind.Deployment
+        cmd, _, _ = _make_command(kind=str(Kind.Deployment))
         with pytest.raises(ValueError, match="Logs are only supported on pods"):
             cmd.execute(1)
 

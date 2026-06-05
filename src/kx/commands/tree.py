@@ -13,4 +13,4 @@ class TreeCommand:
 
     def execute(self, index: int) -> Tree:
         name, namespace, kind = self.state.fields(index)
-        return self.build_tree(self.kubectl.normalize_kind(kind), name, namespace)
+        return self.build_tree(kind, name, namespace)

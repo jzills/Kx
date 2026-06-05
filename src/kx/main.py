@@ -1,5 +1,3 @@
-from dataclasses import asdict
-import json
 from typing import Optional
 
 import typer

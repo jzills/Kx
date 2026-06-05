@@ -12,7 +12,6 @@ class PortForwardCommand:
 
     def execute(self, index: int, port: str) -> None:
         name, namespace, kind = self.state.fields(index)
-        canonical = self.kubectl.normalize_kind(kind)
-        if canonical not in _SUPPORTED_KINDS:
+        if kind not in _SUPPORTED_KINDS:
             raise ValueError(f"port-forward is not supported for '{kind}'.")
-        self.kubectl.run_interactive(["port-forward", f"{canonical}/{name}", port, "-n", namespace])
+        self.kubectl.run_interactive(["port-forward", f"{kind}/{name}", port, "-n", namespace])
