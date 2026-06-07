@@ -55,7 +55,7 @@ def events(index: int):
 
 @app.command(context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
 def logs(ctx: typer.Context, index: int):
-    """Stream logs for an indexed pod."""
+    """Stream logs for an indexed resource; aggregates across pods for Deployments, StatefulSets, DaemonSets, and Services."""
     command = LogsCommand(state=_state, kubectl=_kubectl)
     try:
         command.execute(index, ctx.args)
