@@ -16,11 +16,11 @@ class EventsCommand:
             return "No events found"
 
         output = []
-        for e in filtered:
-            obj = e.involved_object
+        for event in filtered:
+            obj = event.involved_object
             output.append(
-                f"{e.type:8} {e.reason:30} "
-                f"{obj.kind:10} {e.metadata.creation_timestamp} "
-                f"{e.message}"
+                f"{event.type:8} {event.reason:30} "
+                f"{obj.kind:10} {event.metadata.creation_timestamp} "
+                f"{event.message}"
             )
         return "\n".join(output)

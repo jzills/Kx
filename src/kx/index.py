@@ -24,17 +24,17 @@ def _parse_output(output: str) -> tuple[list[str], list[list[str]], int]:
         return [], [], 0
 
     header = lines[0]
-    spans = [(m.start(), m.end()) for m in re.finditer(r"\S+\s*", header)]
-    headers = [header[s:e].strip() for s, e in spans]
+    spans = [(col_match.start(), col_match.end()) for col_match in re.finditer(r"\S+\s*", header)]
+    headers = [header[start:end].strip() for start, end in spans]
     if "NAME" not in headers:
         return [], [], 0
     name_idx = headers.index("NAME")
 
     rows = []
-    for r in lines[1:]:
-        if not r.strip():
+    for row in lines[1:]:
+        if not row.strip():
             continue
-        cols = [r[s:e].strip() for s, e in spans]
+        cols = [row[start:end].strip() for start, end in spans]
         if len(cols) <= name_idx:
             continue
         rows.append(cols)
@@ -54,10 +54,10 @@ class IndexService:
         if not headers:
             return output, []
 
-        names = [r[name_idx] for r in rows]
+        names = [row[name_idx] for row in rows]
 
         headers = ["X"] + headers
-        rows = [[str(i + 1)] + r for i, r in enumerate(rows)]
+        rows = [[str(i + 1)] + row for i, row in enumerate(rows)]
 
         all_rows = [headers] + rows
         cols = list(zip(*all_rows))
@@ -66,14 +66,14 @@ class IndexService:
         def fmt(row: list[str]) -> str:
             return "  ".join(cell.ljust(widths[i]) for i, cell in enumerate(row))
 
-        return "\n".join(fmt(r) for r in all_rows), names
+        return "\n".join(fmt(row) for row in all_rows), names
 
     def filter(self, output: str, term: str) -> str:
         headers, rows, name_idx = _parse_output(output)
         if not headers:
             return output
 
-        filtered = [r for r in rows if term.lower() in r[name_idx].lower()]
+        filtered = [row for row in rows if term.lower() in row[name_idx].lower()]
 
         all_rows = [headers] + filtered
         if len(all_rows) == 1:
@@ -85,7 +85,7 @@ class IndexService:
         def fmt(row: list[str]) -> str:
             return "  ".join(cell.ljust(widths[i]) for i, cell in enumerate(row))
 
-        return "\n".join(fmt(r) for r in all_rows)
+        return "\n".join(fmt(row) for row in all_rows)
 
     def resolve(self, state: "State", index: int) -> str:
         return resolve_index(state, index)

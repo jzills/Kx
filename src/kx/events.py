@@ -16,7 +16,7 @@ class EventsService:
 
     def filter(self, events: list, name: str, kind: str) -> list:
         return [
-            e for e in events
-            if e.involved_object.name == name
-            and e.involved_object.kind == kind
+            event for event in events
+            if event.involved_object.name == name
+            and event.involved_object.kind == kind
         ]
