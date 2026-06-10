@@ -66,8 +66,8 @@ def _tree_cron_job(name, namespace, node, batch, pods):
     cj = batch.read_namespaced_cron_job(name, namespace)
     uid = cj.metadata.uid
     jobs = [
-        j for j in batch.list_namespaced_job(namespace).items
-        if _owned_by(j, uid)
+        job for job in batch.list_namespaced_job(namespace).items
+        if _owned_by(job, uid)
     ]
     for job in jobs:
         job_node = node.add(f"[green]job/{job.metadata.name}[/green]")
@@ -75,7 +75,7 @@ def _tree_cron_job(name, namespace, node, batch, pods):
 
 
 def _add_pods_for_owner(owner_uid, pods, parent_node):
-    owned = [p for p in pods if _owned_by(p, owner_uid)]
+    owned = [pod for pod in pods if _owned_by(pod, owner_uid)]
     for pod in owned:
         pod_node = parent_node.add(f"[blue]pod/{pod.metadata.name}[/blue]")
         _add_containers(pod, pod_node)
