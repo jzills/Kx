@@ -4,12 +4,12 @@ from pathlib import Path
 from typing import Protocol
 
 from kx.index import resolve_index
+from kx.kinds import Kind
 
 
 @dataclass
 class State:
-    kind: str
-    names: list[str]
+    resources: dict[str, Kind | str]  # name → kind, insertion-ordered
     namespace: str = "default"
 
 
@@ -35,4 +35,4 @@ class StateService:
     def fields(self, index: int) -> tuple[str, str, str]:
         state = self.load()
         name = resolve_index(state, index)
-        return name, state.namespace, state.kind
+        return name, state.namespace, state.resources[name]

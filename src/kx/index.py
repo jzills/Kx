@@ -8,11 +8,12 @@ if TYPE_CHECKING:
 
 
 def resolve_index(state, index: int) -> str:
+    names = list(state.resources.keys())
     if index < 1:
         typer.echo("Invalid index")
         raise typer.Exit(1)
     try:
-        return state.names[index - 1]
+        return names[index - 1]
     except IndexError:
         typer.echo("Invalid index")
         raise typer.Exit(1)
