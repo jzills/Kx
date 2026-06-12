@@ -62,5 +62,31 @@ _KIND_MAP: dict[str, Kind] = {
 }
 
 
+_PLURAL_DISPLAY: dict[Kind, str] = {
+    Kind.Pod: "Pods",
+    Kind.Deployment: "Deployments",
+    Kind.ReplicaSet: "ReplicaSets",
+    Kind.StatefulSet: "StatefulSets",
+    Kind.DaemonSet: "DaemonSets",
+    Kind.CronJob: "CronJobs",
+    Kind.Service: "Services",
+    Kind.HorizontalPodAutoscaler: "HorizontalPodAutoscalers",
+    Kind.Ingress: "Ingresses",
+    Kind.ConfigMap: "ConfigMaps",
+    Kind.Secret: "Secrets",
+    Kind.Job: "Jobs",
+    Kind.PersistentVolumeClaim: "PersistentVolumeClaims",
+    Kind.Node: "Nodes",
+    Kind.Namespace: "Namespaces",
+}
+
+
 def normalize_kind(resource_type: str) -> Kind | str:
     return _KIND_MAP.get(resource_type.lower(), resource_type)
+
+
+def plural_display(resource_type: str) -> str:
+    kind = _KIND_MAP.get(resource_type.lower())
+    if kind is not None:
+        return _PLURAL_DISPLAY.get(kind, kind.value + "s").upper()
+    return resource_type.upper()

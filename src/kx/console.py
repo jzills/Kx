@@ -4,6 +4,8 @@ import json
 from rich.console import Console
 from rich.table import Table
 
+from kx.kinds import plural_display
+
 COLOR_HEADER = "#3fb950"
 COLOR_DIM = "#7d8590"
 COLOR_BODY = "#e6edf3"
@@ -97,7 +99,7 @@ def render_indexed_table(text: str, resource_type: str, namespace: str) -> None:
         padding=(0, 2),
     )
     for header in headers:
-        table.add_column("#" if header == "X" else header)
+        table.add_column(header)
 
     status_col = headers.index("STATUS") if "STATUS" in headers else -1
 
@@ -113,7 +115,7 @@ def render_indexed_table(text: str, resource_type: str, namespace: str) -> None:
     count = len(rows)
     label = "item" if count == 1 else "items"
     _console.print(
-        f"[{COLOR_DIM}]{resource_type.upper()} · {namespace} · {count} {label}[/{COLOR_DIM}]"
+        f"[{COLOR_DIM}]{plural_display(resource_type)} · {namespace} · {count} {label}[/{COLOR_DIM}]"
     )
     _console.print(table)
 
