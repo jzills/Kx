@@ -24,5 +24,6 @@ class GetCommand:
             output = self.index.filter(output, filter_term)
         indexed_output, names = self.index.add(output)
         if names:
-            self.state.save(State(kind=str(normalize_kind(resource)), names=names, namespace=namespace))
+            kind = normalize_kind(resource)
+            self.state.save(State(resources={name: kind for name in names}, namespace=namespace))
         return indexed_output

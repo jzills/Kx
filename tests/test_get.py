@@ -41,22 +41,22 @@ class TestGetCommandNormalizesKind:
         cmd, state, _ = _make_command()
         cmd.execute("po", "default")
         saved = state.save.call_args[0][0]
-        assert saved.kind == str(Kind.Pod)
+        assert list(saved.resources.values()) == [str(Kind.Pod)]
 
     def test_plural_alias_normalized(self):
         cmd, state, _ = _make_command()
         cmd.execute("pods", "default")
         saved = state.save.call_args[0][0]
-        assert saved.kind == str(Kind.Pod)
+        assert list(saved.resources.values()) == [str(Kind.Pod)]
 
     def test_deploy_alias_normalized(self):
         cmd, state, _ = _make_command()
         cmd.execute("deploy", "default")
         saved = state.save.call_args[0][0]
-        assert saved.kind == str(Kind.Deployment)
+        assert list(saved.resources.values()) == [str(Kind.Deployment)]
 
     def test_unknown_crd_passes_through(self):
         cmd, state, _ = _make_command()
         cmd.execute("mycrd", "default")
         saved = state.save.call_args[0][0]
-        assert saved.kind == "mycrd"
+        assert list(saved.resources.values()) == ["mycrd"]

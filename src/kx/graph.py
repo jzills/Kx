@@ -89,3 +89,87 @@ def _add_containers(pod, parent_node):
 def _owned_by(resource, uid: str) -> bool:
     refs = resource.metadata.owner_references or []
     return any(ref.uid == uid for ref in refs)
+
+
+def build_indexed_tree(kind: str, name: str, namespace: str) -> tuple[Tree, list[tuple[str, str]]]:
+    load_config()
+    root = Tree(f"[bold]{kind}/{name}[/bold]")
+
+    apps = client.AppsV1Api()
+    core = client.CoreV1Api()
+    batch = client.BatchV1Api()
+
+    pods = core.list_namespaced_pod(namespace).items
+
+    resources: list[tuple[str, str]] = []
+
+    match kind:
+        case Kind.Deployment:
+            _indexed_tree_deployment(name, namespace, root, apps, pods, resources)
+        case Kind.ReplicaSet:
+            _indexed_tree_replica_set(name, namespace, root, apps, pods, resources)
+        case Kind.StatefulSet:
+            _indexed_tree_stateful_set(name, namespace, root, apps, pods, resources)
+        case Kind.DaemonSet:
+            _indexed_tree_daemon_set(name, namespace, root, apps, pods, resources)
+        case Kind.CronJob:
+            _indexed_tree_cron_job(name, namespace, root, batch, pods, resources)
+        case Kind.Pod:
+            pod = core.read_namespaced_pod(name, namespace)
+            _add_containers(pod, root)
+        case _:
+            root.add(f"[dim](no ownership graph for {kind})[/dim]")
+
+    return root, resources
+
+
+def _indexed_tree_deployment(name, namespace, node, apps, pods, resources):
+    deploy = apps.read_namespaced_deployment(name, namespace)
+    uid = deploy.metadata.uid
+    replica_sets = [
+        rs for rs in apps.list_namespaced_replica_set(namespace).items
+        if _owned_by(rs, uid)
+    ]
+    for rs in replica_sets:
+        idx = len(resources) + 1
+        rs_node = node.add(f"[dim]{idx}[/dim] [green]rs/{rs.metadata.name}[/green]")
+        resources.append((rs.metadata.name, Kind.ReplicaSet))
+        _indexed_add_pods_for_owner(rs.metadata.uid, pods, rs_node, resources)
+
+
+def _indexed_tree_replica_set(name, namespace, node, apps, pods, resources):
+    rs = apps.read_namespaced_replica_set(name, namespace)
+    _indexed_add_pods_for_owner(rs.metadata.uid, pods, node, resources)
+
+
+def _indexed_tree_stateful_set(name, namespace, node, apps, pods, resources):
+    sts = apps.read_namespaced_stateful_set(name, namespace)
+    _indexed_add_pods_for_owner(sts.metadata.uid, pods, node, resources)
+
+
+def _indexed_tree_daemon_set(name, namespace, node, apps, pods, resources):
+    ds = apps.read_namespaced_daemon_set(name, namespace)
+    _indexed_add_pods_for_owner(ds.metadata.uid, pods, node, resources)
+
+
+def _indexed_tree_cron_job(name, namespace, node, batch, pods, resources):
+    cj = batch.read_namespaced_cron_job(name, namespace)
+    uid = cj.metadata.uid
+    jobs = [
+        job for job in batch.list_namespaced_job(namespace).items
+        if _owned_by(job, uid)
+    ]
+    for job in jobs:
+        idx = len(resources) + 1
+        job_node = node.add(f"[dim]{idx}[/dim] [green]job/{job.metadata.name}[/green]")
+        resources.append((job.metadata.name, Kind.Job))
+        _indexed_add_pods_for_owner(job.metadata.uid, pods, job_node, resources)
+
+
+def _indexed_add_pods_for_owner(owner_uid, pods, parent_node, resources):
+    owned = [pod for pod in pods if _owned_by(pod, owner_uid)]
+    for pod in owned:
+        idx = len(resources) + 1
+        pod_node = parent_node.add(f"[dim]{idx}[/dim] [blue]pod/{pod.metadata.name}[/blue]")
+        resources.append((pod.metadata.name, Kind.Pod))
+        _add_containers(pod, pod_node)

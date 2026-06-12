@@ -129,24 +129,24 @@ class TestIndexServiceFilter:
 
 class TestResolveIndex:
     def test_valid_index_1(self):
-        state = State(kind="pods", names=["nginx", "redis"])
+        state = State(resources={"nginx": "Pod", "redis": "Pod"})
         assert resolve_index(state, 1) == "nginx"
 
     def test_valid_index_last(self):
-        state = State(kind="pods", names=["nginx", "redis"])
+        state = State(resources={"nginx": "Pod", "redis": "Pod"})
         assert resolve_index(state, 2) == "redis"
 
     def test_index_zero_raises(self):
-        state = State(kind="pods", names=["nginx"])
+        state = State(resources={"nginx": "Pod"})
         with pytest.raises(ClickExit):
             resolve_index(state, 0)
 
     def test_index_beyond_length_raises(self):
-        state = State(kind="pods", names=["nginx"])
+        state = State(resources={"nginx": "Pod"})
         with pytest.raises(ClickExit):
             resolve_index(state, 2)
 
     def test_index_negative_raises(self):
-        state = State(kind="pods", names=["nginx"])
+        state = State(resources={"nginx": "Pod"})
         with pytest.raises(ClickExit):
             resolve_index(state, -1)
