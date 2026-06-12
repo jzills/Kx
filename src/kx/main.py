@@ -33,14 +33,13 @@ _index = IndexService()
 def get(
     ctx: typer.Context,
     resource: str,
-    filter: Optional[str] = typer.Argument(
-        None, help="Filter by name (substring match, case-insensitive)"
+    match: Optional[str] = typer.Option(
+        None, "--match", help="Match by name (substring, case-insensitive)"
     ),
-    namespace: str = typer.Option(None, "-n", help="Kubernetes namespace"),
 ):
     """List resources and assign index numbers for use with other commands."""
     command = GetCommand(kubectl=_kubectl, state=_state, index=_index)
-    typer.echo(command.execute(resource, namespace, filter, ctx.args))
+    typer.echo(command.execute(resource, match, ctx.args))
 
 
 @app.command(
