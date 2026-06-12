@@ -14,7 +14,7 @@ from kx.commands.state import StateCommand
 from kx.commands.tree import TreeCommand
 from kx.commands.yaml import YamlCommand
 from kx.events import EventsService
-from kx.graph import build_indexed_tree
+from kx.graph import build_indexed_tree, build_tree
 from kx.index import IndexService
 from kx.kubectl import KubectlService
 from kx.state import StateService
@@ -132,7 +132,12 @@ def tree(
     """Show the ownership graph for an indexed resource (deployments, statefulsets, etc.)."""
     from rich.console import Console
 
-    command = TreeCommand(state=_state, kubectl=_kubectl, build_tree=build_indexed_tree)
+    command = TreeCommand(
+        state=_state,
+        kubectl=_kubectl,
+        build_tree=build_tree,
+        build_indexed_tree=build_indexed_tree,
+    )
     Console().print(command.execute(index, indexed))
 
 
