@@ -72,7 +72,7 @@ class TestGetCliIntegration:
             patch("kx.main._index", index),
         ):
             result = runner.invoke(
-                app, ["get", "po", "--filter", "nginx", "--sort-by=.metadata.name"]
+                app, ["get", "po", "--match", "nginx", "--sort-by=.metadata.name"]
             )
         assert result.exit_code == 0
         kubectl.run.assert_called_once_with(["get", "po", "--sort-by=.metadata.name"])
