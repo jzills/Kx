@@ -2,6 +2,7 @@ from typing import Optional
 
 import typer
 
+from kx import console
 from kx.commands.delete import DeleteCommand
 from kx.commands.describe import DescribeCommand
 from kx.commands.edit import EditCommand
@@ -19,7 +20,22 @@ from kx.index import IndexService
 from kx.kubectl import KubectlService
 from kx.state import StateService
 
-app = typer.Typer(help="kx - kubectl extended.")
+app = typer.Typer(
+    rich_markup_mode="rich",
+    help=(
+        f"[bold {console.COLOR_HEADER}]kx[/bold {console.COLOR_HEADER}]"
+        f"  [{console.COLOR_DIM}]kubectl, with indexes.[/{console.COLOR_DIM}]"
+    ),
+)
+
+
+@app.callback()
+def callback(
+    no_color: bool = typer.Option(False, "--no-color", help="Disable styled output."),
+) -> None:
+    if no_color:
+        console.configure(plain=True)
+
 
 _kubectl = KubectlService()
 _state = StateService()
