@@ -34,7 +34,7 @@ def get(
     ctx: typer.Context,
     resource: str,
     match: Optional[str] = typer.Option(
-        None, "--match", help="Match by name (substring, case-insensitive)"
+        None, "--match", "-m", help="Match by name (substring, case-insensitive)"
     ),
 ):
     """List resources and assign index numbers for use with other commands."""
