@@ -4,7 +4,12 @@ from kx.types import Confirm
 
 
 class DeleteCommand:
-    def __init__(self, state: StateServiceProtocol, kubectl: KubectlServiceProtocol, confirm: Confirm):
+    def __init__(
+        self,
+        state: StateServiceProtocol,
+        kubectl: KubectlServiceProtocol,
+        confirm: Confirm,
+    ):
         self.state = state
         self.kubectl = kubectl
         self.confirm = confirm

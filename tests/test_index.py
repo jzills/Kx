@@ -42,7 +42,9 @@ class TestParseOutput:
         assert name_idx == 0
 
     def test_header_only_returns_empty_rows(self):
-        headers, rows, _ = _parse_output("NAME             READY   STATUS    RESTARTS   AGE")
+        headers, rows, _ = _parse_output(
+            "NAME             READY   STATUS    RESTARTS   AGE"
+        )
         assert headers == ["NAME", "READY", "STATUS", "RESTARTS", "AGE"]
         assert rows == []
 

@@ -3,6 +3,7 @@ from typing import Protocol
 
 from kx.k8s import load_config
 
+
 class EventsServiceProtocol(Protocol):
     def get(self, namespace: str) -> list: ...
     def filter(self, events: list, name: str, kind: str) -> list: ...
@@ -16,7 +17,7 @@ class EventsService:
 
     def filter(self, events: list, name: str, kind: str) -> list:
         return [
-            event for event in events
-            if event.involved_object.name == name
-            and event.involved_object.kind == kind
+            event
+            for event in events
+            if event.involved_object.name == name and event.involved_object.kind == kind
         ]

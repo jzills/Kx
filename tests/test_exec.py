@@ -1,5 +1,5 @@
 import pytest
-from unittest.mock import MagicMock, call
+from unittest.mock import MagicMock
 from kx.commands.exec import ExecCommand
 from kx.kinds import Kind
 

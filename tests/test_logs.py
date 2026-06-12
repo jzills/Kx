@@ -27,12 +27,16 @@ class TestLogsCommand:
     def test_basic_logs_no_extra_args(self):
         cmd, _, kubectl = _make_command()
         cmd.execute(1)
-        kubectl.run_interactive.assert_called_once_with(["logs", "nginx", "-n", "default"])
+        kubectl.run_interactive.assert_called_once_with(
+            ["logs", "nginx", "-n", "default"]
+        )
 
     def test_follow_flag(self):
         cmd, _, kubectl = _make_command()
         cmd.execute(1, ["-f"])
-        kubectl.run_interactive.assert_called_once_with(["logs", "nginx", "-n", "default", "-f"])
+        kubectl.run_interactive.assert_called_once_with(
+            ["logs", "nginx", "-n", "default", "-f"]
+        )
 
     def test_multiple_flags(self):
         cmd, _, kubectl = _make_command()
@@ -94,7 +98,16 @@ class TestLogsCommand:
         kubectl.run.return_value = _workload_json({"app": "nginx"})
         cmd.execute(1, ["-f", "--tail=100"])
         kubectl.run_interactive.assert_called_once_with(
-            ["logs", "-l", "app=nginx", "--prefix=true", "-n", "default", "-f", "--tail=100"]
+            [
+                "logs",
+                "-l",
+                "app=nginx",
+                "--prefix=true",
+                "-n",
+                "default",
+                "-f",
+                "--tail=100",
+            ]
         )
 
     def test_deployment_empty_selector_raises(self):

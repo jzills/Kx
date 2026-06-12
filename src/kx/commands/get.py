@@ -15,7 +15,13 @@ class GetCommand:
         self.state = state
         self.index = index
 
-    def execute(self, resource: str, namespace: str, filter_term: str | None = None, extra_args: list[str] = []) -> str:
+    def execute(
+        self,
+        resource: str,
+        namespace: str,
+        filter_term: str | None = None,
+        extra_args: list[str] = [],
+    ) -> str:
         if namespace is None:
             namespace = self.kubectl.current_namespace()
 
@@ -25,5 +31,7 @@ class GetCommand:
         indexed_output, names = self.index.add(output)
         if names:
             kind = normalize_kind(resource)
-            self.state.save(State(resources={name: kind for name in names}, namespace=namespace))
+            self.state.save(
+                State(resources={name: kind for name in names}, namespace=namespace)
+            )
         return indexed_output

@@ -17,11 +17,15 @@ class TestGetCommandExtraArgs:
     def test_extra_args_passed_through(self):
         cmd, _, kubectl = _make_command()
         cmd.execute("pods", "default", extra_args=["-o", "wide"])
-        kubectl.run.assert_called_once_with(["get", "pods", "-n", "default", "-o", "wide"])
+        kubectl.run.assert_called_once_with(
+            ["get", "pods", "-n", "default", "-o", "wide"]
+        )
 
     def test_multiple_extra_args(self):
         cmd, _, kubectl = _make_command()
-        cmd.execute("pods", "default", extra_args=["--field-selector", "status.phase=Running"])
+        cmd.execute(
+            "pods", "default", extra_args=["--field-selector", "status.phase=Running"]
+        )
         kubectl.run.assert_called_once_with(
             ["get", "pods", "-n", "default", "--field-selector", "status.phase=Running"]
         )

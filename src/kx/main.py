@@ -22,16 +22,20 @@ from kx.state import StateService
 app = typer.Typer(help="kx - kubectl extended.")
 
 _kubectl = KubectlService()
-_state   = StateService()
-_events  = EventsService()
-_index   = IndexService()
+_state = StateService()
+_events = EventsService()
+_index = IndexService()
 
 
-@app.command(context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
+@app.command(
+    context_settings={"allow_extra_args": True, "ignore_unknown_options": True}
+)
 def get(
     ctx: typer.Context,
     resource: str,
-    filter: Optional[str] = typer.Argument(None, help="Filter by name (substring match, case-insensitive)"),
+    filter: Optional[str] = typer.Argument(
+        None, help="Filter by name (substring match, case-insensitive)"
+    ),
     namespace: str = typer.Option(None, "-n", help="Kubernetes namespace"),
 ):
     """List resources and assign index numbers for use with other commands."""
@@ -39,7 +43,9 @@ def get(
     typer.echo(command.execute(resource, namespace, filter, ctx.args))
 
 
-@app.command(context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
+@app.command(
+    context_settings={"allow_extra_args": True, "ignore_unknown_options": True}
+)
 def describe(ctx: typer.Context, index: int):
     """Show full kubectl describe output for an indexed resource."""
     command = DescribeCommand(state=_state, kubectl=_kubectl)
@@ -53,7 +59,9 @@ def events(index: int):
     typer.echo(command.execute(index))
 
 
-@app.command(context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
+@app.command(
+    context_settings={"allow_extra_args": True, "ignore_unknown_options": True}
+)
 def logs(ctx: typer.Context, index: int):
     """Stream logs for an indexed resource; aggregates across pods for Deployments, StatefulSets, DaemonSets, and Services."""
     command = LogsCommand(state=_state, kubectl=_kubectl)
@@ -85,18 +93,25 @@ def delete(
     typer.echo(command.execute(index, yes))
 
 
-@app.command(context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
+@app.command(
+    context_settings={"allow_extra_args": True, "ignore_unknown_options": True}
+)
 def edit(ctx: typer.Context, index: int):
     """Open an indexed resource in your editor via kubectl edit."""
     command = EditCommand(state=_state, kubectl=_kubectl)
     command.execute(index, ctx.args)
 
 
-@app.command(name="exec", context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
+@app.command(
+    name="exec",
+    context_settings={"allow_extra_args": True, "ignore_unknown_options": True},
+)
 def exec_cmd(
     ctx: typer.Context,
     index: int,
-    cmd: list[str] = typer.Argument(default=None, help="Command to run (default: bash with sh fallback)"),
+    cmd: list[str] = typer.Argument(
+        default=None, help="Command to run (default: bash with sh fallback)"
+    ),
 ):
     """Open an interactive shell in an indexed pod (bash, falling back to sh)."""
     command = ExecCommand(state=_state, kubectl=_kubectl)
@@ -110,7 +125,9 @@ def exec_cmd(
 @app.command()
 def tree(
     index: int,
-    indexed: bool = typer.Option(False, "--index", "-i", help="Assign indexes to tree nodes and update state"),
+    indexed: bool = typer.Option(
+        False, "--index", "-i", help="Assign indexes to tree nodes and update state"
+    ),
 ):
     """Show the ownership graph for an indexed resource (deployments, statefulsets, etc.)."""
     from rich.console import Console
@@ -119,7 +136,10 @@ def tree(
     Console().print(command.execute(index, indexed))
 
 
-@app.command("port-forward", context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
+@app.command(
+    "port-forward",
+    context_settings={"allow_extra_args": True, "ignore_unknown_options": True},
+)
 def port_forward(ctx: typer.Context, index: int, port: str):
     """Port forward to the specified resource at index."""
     command = PortForwardCommand(kubectl=_kubectl, state=_state)
@@ -128,7 +148,8 @@ def port_forward(ctx: typer.Context, index: int, port: str):
     except ValueError as e:
         typer.echo(str(e))
         raise typer.Exit(1)
-    
+
+
 @app.command()
 def state():
     """Show the current state file."""
