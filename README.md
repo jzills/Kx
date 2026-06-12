@@ -13,10 +13,10 @@ pip install kx-cli
 ### List resources
 
 ```
-kx get <resource> [-n <namespace>] [--match|-m <substring>]
+kx get <resource> [--match|-m <substring>] [kubectl flags...]
 ```
 
-Fetches resources and assigns index numbers. Omitting `-n` uses the current context namespace. Use `--match`/`-m` to filter results by name (substring, case-insensitive).
+Fetches resources and assigns index numbers. Any extra flags (e.g. `-n <namespace>`, `-A`) are passed through to kubectl. Use `--match`/`-m` to filter results by name (substring, case-insensitive).
 
 ```
 $ kx get pods
@@ -32,7 +32,7 @@ All subsequent commands reference resources by their `X` index from the last `kx
 
 | Command | Description |
 |---|---|
-| `kx get <resource> [-n ns] [--match\|-m <str>]` | List resources with index numbers; optionally filter by name substring |
+| `kx get <resource> [--match\|-m <str>] [kubectl flags...]` | List resources with index numbers; optionally filter by name substring |
 | `kx describe <index>` | Show `kubectl describe` output for an indexed resource |
 | `kx events <index>` | Show Kubernetes events for the resource |
 | `kx logs <index>` | Stream logs; aggregates across pods for Deployments, StatefulSets, DaemonSets, and Services |
