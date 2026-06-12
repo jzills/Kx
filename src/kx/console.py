@@ -1,0 +1,166 @@
+import re
+import json
+
+from rich.console import Console
+from rich.table import Table
+
+COLOR_HEADER = "#3fb950"
+COLOR_DIM = "#7d8590"
+COLOR_BODY = "#e6edf3"
+COLOR_ERROR = "#f85149"
+COLOR_WARNING = "#e3b341"
+
+_STATUS_GREEN = {
+    "Running",
+    "Active",
+    "Bound",
+    "Available",
+    "Healthy",
+    "Completed",
+    "Succeeded",
+}
+_STATUS_YELLOW = {"Pending", "Terminating", "Unknown"}
+_STATUS_RED = {
+    "Error",
+    "CrashLoopBackOff",
+    "OOMKilled",
+    "Failed",
+    "Evicted",
+    "ImagePullBackOff",
+    "ErrImagePull",
+    "InvalidImageName",
+}
+
+_console = Console()
+
+
+def configure(plain: bool) -> None:
+    global _console
+    _console = Console(no_color=True, highlight=False) if plain else Console()
+
+
+def print_success(msg: str) -> None:
+    _console.print(f"[{COLOR_HEADER}]✓[/{COLOR_HEADER}] {msg}")
+
+
+def print_error(msg: str) -> None:
+    _console.print(f"[{COLOR_ERROR}]✗[/{COLOR_ERROR}] {msg}")
+
+
+def print_banner(kind: str, name: str, extra: str = "") -> None:
+    suffix = f" {extra}" if extra else ""
+    _console.print(f"[{COLOR_DIM}]→ {kind}/{name}{suffix}[/{COLOR_DIM}]")
+
+
+def print_raw(text: str) -> None:
+    _console.print(text, markup=False, highlight=False)
+
+
+def print_rich(renderable) -> None:
+    _console.print(renderable)
+
+
+def _status_color(status: str) -> str:
+    if status in _STATUS_GREEN:
+        return COLOR_HEADER
+    if status in _STATUS_RED:
+        return COLOR_ERROR
+    if status in _STATUS_YELLOW or "Init" in status or status == "ContainerCreating":
+        return COLOR_WARNING
+    return COLOR_BODY
+
+
+def render_indexed_table(text: str, resource_type: str, namespace: str) -> None:
+    lines = [line for line in text.splitlines() if line.strip()]
+    if not lines:
+        return
+
+    header_line = lines[0]
+    first_col = header_line.split()[0] if header_line.split() else ""
+    if first_col != "X":
+        _console.print(text, markup=False, highlight=False)
+        return
+
+    spans = [(m.start(), m.end()) for m in re.finditer(r"\S+\s*", header_line)]
+    headers = [header_line[start:end].strip() for start, end in spans]
+
+    rows = []
+    for line in lines[1:]:
+        cols = [line[start:end].strip() for start, end in spans]
+        if cols:
+            rows.append(cols)
+
+    table = Table(
+        show_header=True,
+        header_style=f"bold {COLOR_HEADER}",
+        box=None,
+        padding=(0, 2),
+    )
+    for header in headers:
+        table.add_column("#" if header == "X" else header)
+
+    status_col = headers.index("STATUS") if "STATUS" in headers else -1
+
+    for row in rows:
+        styled = []
+        for index, cell in enumerate(row):
+            if index == status_col:
+                styled.append(f"[{_status_color(cell)}]{cell}[/]")
+            else:
+                styled.append(cell)
+        table.add_row(*styled)
+
+    count = len(rows)
+    label = "item" if count == 1 else "items"
+    _console.print(
+        f"[{COLOR_DIM}]{resource_type.upper()} · {namespace} · {count} {label}[/{COLOR_DIM}]"
+    )
+    _console.print(table)
+
+
+def render_events_table(text: str) -> None:
+    if text.strip() == "No events found":
+        _console.print(f"[{COLOR_DIM}]No events found[/{COLOR_DIM}]")
+        return
+
+    table = Table(
+        show_header=True,
+        header_style=f"bold {COLOR_HEADER}",
+        box=None,
+        padding=(0, 2),
+    )
+    for col in ("TYPE", "REASON", "KIND", "TIMESTAMP", "MESSAGE"):
+        table.add_column(col)
+
+    for line in text.splitlines():
+        if not line.strip():
+            continue
+        event_type = line[0:8].strip()
+        reason = line[9:39].strip()
+        kind = line[40:50].strip()
+        rest = line[51:]
+        parts = rest.split(" ", 2)
+        timestamp = (
+            f"{parts[0]} {parts[1]}" if len(parts) >= 2 else (parts[0] if parts else "")
+        )
+        message = parts[2] if len(parts) >= 3 else ""
+
+        type_color = COLOR_DIM if event_type == "Normal" else COLOR_WARNING
+        table.add_row(
+            f"[{type_color}]{event_type}[/]",
+            reason,
+            kind,
+            f"[{COLOR_DIM}]{timestamp}[/]",
+            message,
+        )
+
+    _console.print(table)
+
+
+def render_state(json_str: str) -> None:
+    data = json.loads(json_str)
+    namespace = data.get("namespace", "default")
+    resources = data.get("resources", {})
+    _console.print(f"[{COLOR_DIM}]namespace:[/{COLOR_DIM}] {namespace}")
+    for name, kind in resources.items():
+        _console.print(f"  [{COLOR_HEADER}]{kind}[/{COLOR_HEADER}] {name}")
