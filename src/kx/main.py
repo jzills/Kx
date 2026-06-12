@@ -36,11 +36,27 @@ def get(
     filter: Optional[str] = typer.Argument(
         None, help="Filter by name (substring match, case-insensitive)"
     ),
-    namespace: str = typer.Option(None, "-n", help="Kubernetes namespace"),
+    namespace: Optional[str] = typer.Option(
+        None, "-n", "--namespace", help="Kubernetes namespace"
+    ),
+    all_namespaces: bool = typer.Option(
+        False, "-A", "--all-namespaces", help="List across all namespaces"
+    ),
 ):
     """List resources and assign index numbers for use with other commands."""
     command = GetCommand(kubectl=_kubectl, state=_state, index=_index)
-    typer.echo(command.execute(resource, namespace, filter, ctx.args))
+    # When no positional filter is given and a --flag is the next arg, Typer feeds
+    # it into the optional Argument instead of ctx.args. Detect and correct this.
+    if filter is not None and filter.startswith("--"):
+        extra_args = [filter, *ctx.args]
+        filter = None
+    else:
+        extra_args = ctx.args
+    if all_namespaces:
+        extra_args = ["-A", *extra_args]
+    elif namespace:
+        extra_args = ["-n", namespace, *extra_args]
+    typer.echo(command.execute(resource, filter, extra_args))
 
 
 @app.command(
