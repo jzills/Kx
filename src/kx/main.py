@@ -55,7 +55,16 @@ def get(
 ):
     """List resources and assign index numbers for use with other commands."""
     command = GetCommand(kubectl=_kubectl, state=_state, index=_index)
-    typer.echo(command.execute(resource, match, ctx.args))
+    result = command.execute(resource, match, ctx.args)
+    all_namespaces = any(arg in ("-A", "--all-namespaces") for arg in ctx.args)
+    if all_namespaces:
+        namespace = "all namespaces"
+    else:
+        try:
+            namespace = _state.load().namespace
+        except RuntimeError:
+            namespace = "default"
+    console.render_indexed_table(result, resource, namespace)
 
 
 @app.command(
@@ -71,7 +80,7 @@ def describe(ctx: typer.Context, index: int):
 def events(index: int):
     """Show Kubernetes events for an indexed resource."""
     command = EventsCommand(state=_state, events=_events)
-    typer.echo(command.execute(index))
+    console.render_events_table(command.execute(index))
 
 
 @app.command(
@@ -91,7 +100,7 @@ def logs(ctx: typer.Context, index: int):
 def yaml(index: int):
     """Print the raw YAML manifest for an indexed resource."""
     command = YamlCommand(state=_state, kubectl=_kubectl)
-    typer.echo(command.execute(index))
+    console.print_raw(command.execute(index))
 
 
 @app.command()
@@ -105,7 +114,7 @@ def delete(
         kubectl=_kubectl,
         confirm=lambda msg: typer.confirm(msg, abort=True),
     )
-    typer.echo(command.execute(index, yes))
+    console.print_success(command.execute(index, yes))
 
 
 @app.command(
@@ -145,15 +154,13 @@ def tree(
     ),
 ):
     """Show the ownership graph for an indexed resource (deployments, statefulsets, etc.)."""
-    from rich.console import Console
-
     command = TreeCommand(
         state=_state,
         kubectl=_kubectl,
         build_tree=build_tree,
         build_indexed_tree=build_indexed_tree,
     )
-    Console().print(command.execute(index, indexed))
+    console.print_rich(command.execute(index, indexed))
 
 
 @app.command(
@@ -175,10 +182,9 @@ def state():
     """Show the current state file."""
     command = StateCommand(state=_state)
     try:
-        state = command.execute()
-        typer.echo(state)
+        console.render_state(command.execute())
     except RuntimeError as e:
-        typer.echo(str(e))
+        console.print_error(str(e))
         raise typer.Exit(1)
 
 
