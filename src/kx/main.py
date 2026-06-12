@@ -72,6 +72,8 @@ def get(
 )
 def describe(ctx: typer.Context, index: int):
     """Show full kubectl describe output for an indexed resource."""
+    name, _ns, kind = _state.fields(index)
+    console.print_banner(kind, name)
     command = DescribeCommand(state=_state, kubectl=_kubectl)
     command.execute(index, ctx.args)
 
@@ -88,11 +90,13 @@ def events(index: int):
 )
 def logs(ctx: typer.Context, index: int):
     """Stream logs for an indexed resource; aggregates across pods for Deployments, StatefulSets, DaemonSets, and Services."""
+    name, _ns, kind = _state.fields(index)
+    console.print_banner(kind, name)
     command = LogsCommand(state=_state, kubectl=_kubectl)
     try:
         command.execute(index, ctx.args)
     except ValueError as e:
-        typer.echo(str(e))
+        console.print_error(str(e))
         raise typer.Exit(1)
 
 
@@ -122,6 +126,8 @@ def delete(
 )
 def edit(ctx: typer.Context, index: int):
     """Open an indexed resource in your editor via kubectl edit."""
+    name, _ns, kind = _state.fields(index)
+    console.print_banner(kind, name)
     command = EditCommand(state=_state, kubectl=_kubectl)
     command.execute(index, ctx.args)
 
@@ -138,11 +144,13 @@ def exec_cmd(
     ),
 ):
     """Open an interactive shell in an indexed pod (bash, falling back to sh)."""
+    name, _ns, kind = _state.fields(index)
+    console.print_banner(kind, name)
     command = ExecCommand(state=_state, kubectl=_kubectl)
     try:
         command.execute(index, cmd, ctx.args)
     except ValueError as e:
-        typer.echo(str(e))
+        console.print_error(str(e))
         raise typer.Exit(1)
 
 
@@ -169,11 +177,13 @@ def tree(
 )
 def port_forward(ctx: typer.Context, index: int, port: str):
     """Port forward to the specified resource at index."""
+    name, _ns, kind = _state.fields(index)
+    console.print_banner(kind, name, extra=port)
     command = PortForwardCommand(kubectl=_kubectl, state=_state)
     try:
         command.execute(index, port, ctx.args)
     except ValueError as e:
-        typer.echo(str(e))
+        console.print_error(str(e))
         raise typer.Exit(1)
 
 
