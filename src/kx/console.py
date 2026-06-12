@@ -159,6 +159,33 @@ def render_events_table(text: str) -> None:
     _console.print(table)
 
 
+def print_help(commands: list[tuple[str, str]]) -> None:
+    _console.print()
+    _console.print(f"[bold {COLOR_HEADER}]kx[/bold {COLOR_HEADER}]")
+    _console.print(f"[{COLOR_DIM}]kubectl, with indexes.[/{COLOR_DIM}]")
+    _console.print()
+    _console.rule(style=COLOR_DIM)
+    _console.print()
+    _console.print(
+        f"[{COLOR_DIM}]Usage[/{COLOR_DIM}]  kx [OPTIONS] COMMAND [ARGS]...",
+        highlight=False,
+    )
+    _console.print()
+    _console.print(f"[bold {COLOR_HEADER}]Commands[/bold {COLOR_HEADER}]")
+    for name, doc in commands:
+        _console.print(
+            f"  [{COLOR_BODY}]{name:<14}[/{COLOR_BODY}]  [{COLOR_DIM}]{doc}[/{COLOR_DIM}]"
+        )
+    _console.print()
+    _console.print(f"[bold {COLOR_HEADER}]Options[/bold {COLOR_HEADER}]")
+    _console.print(
+        f"  [{COLOR_BODY}]{'--no-color':<14}[/{COLOR_BODY}]  [{COLOR_DIM}]Disable styled output.[/{COLOR_DIM}]"
+    )
+    _console.print(
+        f"  [{COLOR_BODY}]{'--help':<14}[/{COLOR_BODY}]  [{COLOR_DIM}]Show this message and exit.[/{COLOR_DIM}]"
+    )
+
+
 def render_state(json_str: str) -> None:
     data = json.loads(json_str)
     namespace = data.get("namespace", "default")

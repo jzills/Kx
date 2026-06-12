@@ -21,20 +21,28 @@ from kx.kubectl import KubectlService
 from kx.state import StateService
 
 app = typer.Typer(
-    rich_markup_mode="rich",
-    help=(
-        f"[bold {console.COLOR_HEADER}]kx[/bold {console.COLOR_HEADER}]"
-        f"  [{console.COLOR_DIM}]kubectl, with indexes.[/{console.COLOR_DIM}]"
-    ),
+    add_help_option=False,
+    add_completion=False,
 )
 
 
-@app.callback()
+@app.callback(invoke_without_command=True)
 def callback(
+    ctx: typer.Context,
     no_color: bool = typer.Option(False, "--no-color", help="Disable styled output."),
+    show_help: bool = typer.Option(
+        False, "--help", is_eager=True, help="Show this message and exit."
+    ),
 ) -> None:
     if no_color:
         console.configure(plain=True)
+    if show_help or ctx.invoked_subcommand is None:
+        commands = [
+            (name, cmd.get_short_help_str(limit=55))
+            for name, cmd in ctx.command.commands.items()
+        ]
+        console.print_help(commands)
+        raise typer.Exit()
 
 
 _kubectl = KubectlService()
