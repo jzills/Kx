@@ -39,7 +39,8 @@ def _tree_deployment(name, namespace, node, apps, pods):
     deploy = apps.read_namespaced_deployment(name, namespace)
     uid = deploy.metadata.uid
     replica_sets = [
-        rs for rs in apps.list_namespaced_replica_set(namespace).items
+        rs
+        for rs in apps.list_namespaced_replica_set(namespace).items
         if _owned_by(rs, uid)
     ]
     for rs in replica_sets:
@@ -66,8 +67,7 @@ def _tree_cron_job(name, namespace, node, batch, pods):
     cj = batch.read_namespaced_cron_job(name, namespace)
     uid = cj.metadata.uid
     jobs = [
-        job for job in batch.list_namespaced_job(namespace).items
-        if _owned_by(job, uid)
+        job for job in batch.list_namespaced_job(namespace).items if _owned_by(job, uid)
     ]
     for job in jobs:
         job_node = node.add(f"[green]job/{job.metadata.name}[/green]")
@@ -91,7 +91,9 @@ def _owned_by(resource, uid: str) -> bool:
     return any(ref.uid == uid for ref in refs)
 
 
-def build_indexed_tree(kind: str, name: str, namespace: str) -> tuple[Tree, list[tuple[str, str]]]:
+def build_indexed_tree(
+    kind: str, name: str, namespace: str
+) -> tuple[Tree, list[tuple[str, str]]]:
     load_config()
     root = Tree(f"[bold]{kind}/{name}[/bold]")
 
@@ -127,7 +129,8 @@ def _indexed_tree_deployment(name, namespace, node, apps, pods, resources):
     deploy = apps.read_namespaced_deployment(name, namespace)
     uid = deploy.metadata.uid
     replica_sets = [
-        rs for rs in apps.list_namespaced_replica_set(namespace).items
+        rs
+        for rs in apps.list_namespaced_replica_set(namespace).items
         if _owned_by(rs, uid)
     ]
     for rs in replica_sets:
@@ -156,8 +159,7 @@ def _indexed_tree_cron_job(name, namespace, node, batch, pods, resources):
     cj = batch.read_namespaced_cron_job(name, namespace)
     uid = cj.metadata.uid
     jobs = [
-        job for job in batch.list_namespaced_job(namespace).items
-        if _owned_by(job, uid)
+        job for job in batch.list_namespaced_job(namespace).items if _owned_by(job, uid)
     ]
     for job in jobs:
         idx = len(resources) + 1
@@ -170,6 +172,8 @@ def _indexed_add_pods_for_owner(owner_uid, pods, parent_node, resources):
     owned = [pod for pod in pods if _owned_by(pod, owner_uid)]
     for pod in owned:
         idx = len(resources) + 1
-        pod_node = parent_node.add(f"[dim]{idx}[/dim] [blue]pod/{pod.metadata.name}[/blue]")
+        pod_node = parent_node.add(
+            f"[dim]{idx}[/dim] [blue]pod/{pod.metadata.name}[/blue]"
+        )
         resources.append((pod.metadata.name, Kind.Pod))
         _add_containers(pod, pod_node)

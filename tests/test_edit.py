@@ -14,7 +14,9 @@ class TestEditCommand:
     def test_basic_edit(self):
         cmd, _, kubectl = _make_command()
         cmd.execute(1)
-        kubectl.run_interactive.assert_called_once_with(["edit", "Pod", "nginx", "-n", "default"])
+        kubectl.run_interactive.assert_called_once_with(
+            ["edit", "Pod", "nginx", "-n", "default"]
+        )
 
     def test_uses_state_fields(self):
         cmd, state, _ = _make_command(name="my-pod", namespace="kube-system")

@@ -21,7 +21,9 @@ class TestStateDataclass:
 
 class TestStateServiceSaveLoad:
     def test_round_trip(self, tmp_path):
-        state = State(resources={"nginx": "Pod", "redis": "Pod"}, namespace="kube-system")
+        state = State(
+            resources={"nginx": "Pod", "redis": "Pod"}, namespace="kube-system"
+        )
         with _patched(tmp_path):
             svc = StateService()
             svc.save(state)
@@ -52,7 +54,9 @@ class TestStateServiceSaveLoad:
 
 class TestStateServiceFields:
     def test_fields_index_1(self, tmp_path):
-        state = State(resources={"nginx": "Pod", "redis": "Pod"}, namespace="kube-system")
+        state = State(
+            resources={"nginx": "Pod", "redis": "Pod"}, namespace="kube-system"
+        )
         with _patched(tmp_path):
             svc = StateService()
             svc.save(state)
@@ -70,7 +74,9 @@ class TestStateServiceFields:
         assert name == "redis"
 
     def test_fields_heterogeneous_kinds(self, tmp_path):
-        state = State(resources={"my-rs": "ReplicaSet", "my-pod": "Pod"}, namespace="default")
+        state = State(
+            resources={"my-rs": "ReplicaSet", "my-pod": "Pod"}, namespace="default"
+        )
         with _patched(tmp_path):
             svc = StateService()
             svc.save(state)

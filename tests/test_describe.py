@@ -14,7 +14,9 @@ class TestDescribeCommand:
     def test_basic_describe(self):
         cmd, _, kubectl = _make_command()
         cmd.execute(1)
-        kubectl.run_interactive.assert_called_once_with(["describe", "Pod", "nginx", "-n", "default"])
+        kubectl.run_interactive.assert_called_once_with(
+            ["describe", "Pod", "nginx", "-n", "default"]
+        )
 
     def test_uses_state_fields(self):
         cmd, state, _ = _make_command(name="my-pod", namespace="kube-system")
@@ -32,5 +34,13 @@ class TestDescribeCommand:
         cmd, _, kubectl = _make_command()
         cmd.execute(1, ["--show-events=false", "--chunk-size=500"])
         kubectl.run_interactive.assert_called_once_with(
-            ["describe", "Pod", "nginx", "-n", "default", "--show-events=false", "--chunk-size=500"]
+            [
+                "describe",
+                "Pod",
+                "nginx",
+                "-n",
+                "default",
+                "--show-events=false",
+                "--chunk-size=500",
+            ]
         )

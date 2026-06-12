@@ -29,7 +29,9 @@ class LogsCommand:
         obj = json.loads(raw)
         labels = self._extract_labels(obj, kind)
         if not labels:
-            raise ValueError(f"{kind}/{name} has no pod selector; cannot aggregate logs.")
+            raise ValueError(
+                f"{kind}/{name} has no pod selector; cannot aggregate logs."
+            )
         return ",".join(f"{k}={v}" for k, v in labels.items())
 
     @staticmethod

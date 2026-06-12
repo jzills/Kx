@@ -25,7 +25,10 @@ def _parse_output(output: str) -> tuple[list[str], list[list[str]], int]:
         return [], [], 0
 
     header = lines[0]
-    spans = [(col_match.start(), col_match.end()) for col_match in re.finditer(r"\S+\s*", header)]
+    spans = [
+        (col_match.start(), col_match.end())
+        for col_match in re.finditer(r"\S+\s*", header)
+    ]
     headers = [header[start:end].strip() for start, end in spans]
     if "NAME" not in headers:
         return [], [], 0
