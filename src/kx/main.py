@@ -36,21 +36,10 @@ def get(
     filter: Optional[str] = typer.Option(
         None, "--filter", help="Filter by name (substring match, case-insensitive)"
     ),
-    namespace: Optional[str] = typer.Option(
-        None, "-n", "--namespace", help="Kubernetes namespace"
-    ),
-    all_namespaces: bool = typer.Option(
-        False, "-A", "--all-namespaces", help="List across all namespaces"
-    ),
 ):
     """List resources and assign index numbers for use with other commands."""
     command = GetCommand(kubectl=_kubectl, state=_state, index=_index)
-    extra_args = ctx.args
-    if all_namespaces:
-        extra_args = ["-A", *extra_args]
-    elif namespace:
-        extra_args = ["-n", namespace, *extra_args]
-    typer.echo(command.execute(resource, filter, extra_args))
+    typer.echo(command.execute(resource, filter, ctx.args))
 
 
 @app.command(
