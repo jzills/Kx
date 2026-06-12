@@ -72,20 +72,8 @@ class TestGetCliIntegration:
             patch("kx.main._index", index),
         ):
             result = runner.invoke(
-                app, ["get", "po", "nginx", "--sort-by=.metadata.name"]
+                app, ["get", "po", "--filter", "nginx", "--sort-by=.metadata.name"]
             )
         assert result.exit_code == 0
         kubectl.run.assert_called_once_with(["get", "po", "--sort-by=.metadata.name"])
         index.filter.assert_called_once_with("NAME\nnginx", "nginx")
-
-    def test_dash_prefix_filter_stays_as_filter(self):
-        kubectl, state, index = _make_mocks()
-        with (
-            patch("kx.main._kubectl", kubectl),
-            patch("kx.main._state", state),
-            patch("kx.main._index", index),
-        ):
-            result = runner.invoke(app, ["get", "po", "-api"])
-        assert result.exit_code == 0
-        kubectl.run.assert_called_once_with(["get", "po"])
-        index.filter.assert_called_once_with("NAME\nnginx", "-api")

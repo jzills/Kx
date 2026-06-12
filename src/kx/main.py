@@ -33,8 +33,8 @@ _index = IndexService()
 def get(
     ctx: typer.Context,
     resource: str,
-    filter: Optional[str] = typer.Argument(
-        None, help="Filter by name (substring match, case-insensitive)"
+    filter: Optional[str] = typer.Option(
+        None, "--filter", help="Filter by name (substring match, case-insensitive)"
     ),
     namespace: Optional[str] = typer.Option(
         None, "-n", "--namespace", help="Kubernetes namespace"
@@ -45,13 +45,7 @@ def get(
 ):
     """List resources and assign index numbers for use with other commands."""
     command = GetCommand(kubectl=_kubectl, state=_state, index=_index)
-    # When no positional filter is given and a --flag is the next arg, Typer feeds
-    # it into the optional Argument instead of ctx.args. Detect and correct this.
-    if filter is not None and filter.startswith("--"):
-        extra_args = [filter, *ctx.args]
-        filter = None
-    else:
-        extra_args = ctx.args
+    extra_args = ctx.args
     if all_namespaces:
         extra_args = ["-A", *extra_args]
     elif namespace:
