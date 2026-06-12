@@ -33,15 +33,15 @@ All subsequent commands reference resources by their `X` index from the last `kx
 | Command | Description |
 |---|---|
 | `kx get <resource> [--match\|-m <str>] [kubectl flags...]` | List resources with index numbers; optionally filter by name substring |
-| `kx describe <index>` | Show `kubectl describe` output for an indexed resource |
+| `kx describe <index> [kubectl flags...]` | Show `kubectl describe` output for an indexed resource |
 | `kx events <index>` | Show Kubernetes events for the resource |
-| `kx logs <index>` | Stream logs; aggregates across pods for Deployments, StatefulSets, DaemonSets, and Services |
+| `kx logs <index> [kubectl flags...]` | Stream logs; aggregates across pods for Deployments, StatefulSets, DaemonSets, and Services |
 | `kx yaml <index>` | Print the raw YAML manifest |
-| `kx exec <index> [cmd]` | Open an interactive shell in a pod (bash → sh fallback); pass a custom command with `cmd` |
-| `kx edit <index>` | Open the resource in your editor via `kubectl edit` |
+| `kx exec <index> [cmd] [kubectl flags...]` | Open an interactive shell in a pod (bash → sh fallback); pass a custom command with `cmd` |
+| `kx edit <index> [kubectl flags...]` | Open the resource in your editor via `kubectl edit` |
 | `kx delete <index> [-y]` | Delete the resource (prompts for confirmation; `-y` skips it) |
 | `kx tree <index> [--index\|-i]` | Show the ownership graph for a resource; `--index` assigns indexes to tree nodes |
-| `kx port-forward <index> <port>` | Forward a local port to a resource (supports Pod, Deployment, ReplicaSet, StatefulSet, DaemonSet, Service) |
+| `kx port-forward <index> <port> [kubectl flags...]` | Forward a local port to a resource (supports Pod, Deployment, ReplicaSet, StatefulSet, DaemonSet, Service) |
 | `kx state` | Show the current state (last `kx get` result) as JSON |
 
 ### Example workflow
