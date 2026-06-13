@@ -5,7 +5,7 @@ description = "kubectl wrapper with index-based resource selection"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "typer",
+    "typer==0.25.1",
     "click",
     "kubernetes",
     "rich",
