@@ -13,4 +13,6 @@ class DescribeCommand:
 
     def execute(self, index: int, extra_args: list[str] = []) -> None:
         name, namespace, kind = self.state.fields(index)
-        self.kubectl.run_interactive(["describe", kind, name, "-n", namespace, *extra_args])
+        self.kubectl.run_interactive(
+            ["describe", kind, name, "-n", namespace, *extra_args]
+        )

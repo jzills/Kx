@@ -4,6 +4,15 @@ from kx.kubectl import KubectlServiceProtocol
 from kx.state import State, StateServiceProtocol
 
 
+def _extract_namespace(extra_args: list[str]) -> str | None:
+    for index, arg in enumerate(extra_args):
+        if arg in ("-n", "--namespace") and index + 1 < len(extra_args):
+            return extra_args[index + 1]
+        if arg.startswith("--namespace="):
+            return arg.split("=", 1)[1]
+    return None
+
+
 class GetCommand:
     def __init__(
         self,
@@ -15,14 +24,23 @@ class GetCommand:
         self.state = state
         self.index = index
 
-    def execute(self, resource: str, namespace: str, filter_term: str | None = None, extra_args: list[str] = []) -> str:
-        if namespace is None:
-            namespace = self.kubectl.current_namespace()
-
-        output = self.kubectl.run(["get", resource, "-n", namespace, *extra_args])
+    def execute(
+        self,
+        resource: str,
+        filter_term: str | None = None,
+        extra_args: list[str] = [],
+    ) -> str:
+        output = self.kubectl.run(["get", resource, *extra_args])
         if filter_term:
             output = self.index.filter(output, filter_term)
         indexed_output, names = self.index.add(output)
-        if names:
-            self.state.save(State(kind=str(normalize_kind(resource)), names=names, namespace=namespace))
+        all_namespaces = any(arg in ("-A", "--all-namespaces") for arg in extra_args)
+        if names and not all_namespaces:
+            namespace = (
+                _extract_namespace(extra_args) or self.kubectl.current_namespace()
+            )
+            kind = normalize_kind(resource)
+            self.state.save(
+                State(resources={name: kind for name in names}, namespace=namespace)
+            )
         return indexed_output

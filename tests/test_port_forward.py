@@ -33,15 +33,33 @@ class TestPortForwardCommand:
         cmd, _, kubectl = _make_command()
         cmd.execute(1, "8080:8080", extra_args=["--address", "0.0.0.0"])
         kubectl.run_interactive.assert_called_once_with(
-            ["port-forward", "Pod/nginx", "8080:8080", "-n", "default", "--address", "0.0.0.0"]
+            [
+                "port-forward",
+                "Pod/nginx",
+                "8080:8080",
+                "-n",
+                "default",
+                "--address",
+                "0.0.0.0",
+            ]
         )
 
     def test_multiple_extra_args(self):
         cmd, _, kubectl = _make_command()
-        cmd.execute(1, "8080:8080", extra_args=["--address", "0.0.0.0", "--pod-running-timeout=1m"])
+        cmd.execute(
+            1,
+            "8080:8080",
+            extra_args=["--address", "0.0.0.0", "--pod-running-timeout=1m"],
+        )
         kubectl.run_interactive.assert_called_once_with(
             [
-                "port-forward", "Pod/nginx", "8080:8080", "-n", "default",
-                "--address", "0.0.0.0", "--pod-running-timeout=1m",
+                "port-forward",
+                "Pod/nginx",
+                "8080:8080",
+                "-n",
+                "default",
+                "--address",
+                "0.0.0.0",
+                "--pod-running-timeout=1m",
             ]
         )

@@ -1,6 +1,7 @@
 import subprocess
 from typing import Protocol
 
+
 class KubectlServiceProtocol(Protocol):
     def run(self, args: list[str]) -> str: ...
     def run_interactive(self, args: list[str]) -> int: ...
@@ -13,8 +14,9 @@ class KubectlService:
             ["kubectl", *args],
             capture_output=True,
             text=True,
-            check=True,
         )
+        if result.returncode != 0:
+            raise RuntimeError(result.stderr.strip())
         return result.stdout
 
     def run_interactive(self, args: list[str]) -> int:
@@ -30,4 +32,3 @@ class KubectlService:
         )
         ns = result.stdout.strip()
         return ns if ns else "default"
-

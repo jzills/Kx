@@ -2,7 +2,14 @@ from kx.kinds import Kind
 from kx.kubectl import KubectlServiceProtocol
 from kx.state import StateServiceProtocol
 
-_SUPPORTED_KINDS = {Kind.Pod, Kind.Deployment, Kind.ReplicaSet, Kind.StatefulSet, Kind.DaemonSet, Kind.Service}
+_SUPPORTED_KINDS = {
+    Kind.Pod,
+    Kind.Deployment,
+    Kind.ReplicaSet,
+    Kind.StatefulSet,
+    Kind.DaemonSet,
+    Kind.Service,
+}
 
 
 class PortForwardCommand:
@@ -14,4 +21,6 @@ class PortForwardCommand:
         name, namespace, kind = self.state.fields(index)
         if kind not in _SUPPORTED_KINDS:
             raise ValueError(f"port-forward is not supported for '{kind}'.")
-        self.kubectl.run_interactive(["port-forward", f"{kind}/{name}", port, "-n", namespace, *extra_args])
+        self.kubectl.run_interactive(
+            ["port-forward", f"{kind}/{name}", port, "-n", namespace, *extra_args]
+        )
