@@ -2,6 +2,7 @@ from typing import Optional
 
 import typer
 
+from kx import console
 from kx.commands.delete import DeleteCommand
 from kx.commands.describe import DescribeCommand
 from kx.commands.edit import EditCommand
@@ -19,7 +20,22 @@ from kx.index import IndexService
 from kx.kubectl import KubectlService
 from kx.state import StateService
 
-app = typer.Typer(help="kx - kubectl extended.")
+app = typer.Typer(
+    rich_markup_mode="rich",
+    help=(
+        f"[bold {console.COLOR_HEADER}]kx[/bold {console.COLOR_HEADER}]"
+        f"  [{console.COLOR_DIM}]kubectl, with indexes.[/{console.COLOR_DIM}]"
+    ),
+)
+
+
+@app.callback()
+def callback(
+    no_color: bool = typer.Option(False, "--no-color", help="Disable styled output."),
+) -> None:
+    if no_color:
+        console.configure(plain=True)
+
 
 _kubectl = KubectlService()
 _state = StateService()
@@ -39,7 +55,16 @@ def get(
 ):
     """List resources and assign index numbers for use with other commands."""
     command = GetCommand(kubectl=_kubectl, state=_state, index=_index)
-    typer.echo(command.execute(resource, match, ctx.args))
+    result = command.execute(resource, match, ctx.args)
+    all_namespaces = any(arg in ("-A", "--all-namespaces") for arg in ctx.args)
+    if all_namespaces:
+        namespace = "all namespaces"
+    else:
+        try:
+            namespace = _state.load().namespace
+        except RuntimeError:
+            namespace = "default"
+    console.render_indexed_table(result, resource, namespace)
 
 
 @app.command(
@@ -47,6 +72,8 @@ def get(
 )
 def describe(ctx: typer.Context, index: int):
     """Show full kubectl describe output for an indexed resource."""
+    name, _ns, kind = _state.fields(index)
+    console.print_banner(kind, name)
     command = DescribeCommand(state=_state, kubectl=_kubectl)
     command.execute(index, ctx.args)
 
@@ -55,7 +82,7 @@ def describe(ctx: typer.Context, index: int):
 def events(index: int):
     """Show Kubernetes events for an indexed resource."""
     command = EventsCommand(state=_state, events=_events)
-    typer.echo(command.execute(index))
+    console.render_events_table(command.execute(index))
 
 
 @app.command(
@@ -63,11 +90,13 @@ def events(index: int):
 )
 def logs(ctx: typer.Context, index: int):
     """Stream logs for an indexed resource; aggregates across pods for Deployments, StatefulSets, DaemonSets, and Services."""
+    name, _ns, kind = _state.fields(index)
+    console.print_banner(kind, name)
     command = LogsCommand(state=_state, kubectl=_kubectl)
     try:
         command.execute(index, ctx.args)
     except ValueError as e:
-        typer.echo(str(e))
+        console.print_error(str(e))
         raise typer.Exit(1)
 
 
@@ -75,7 +104,7 @@ def logs(ctx: typer.Context, index: int):
 def yaml(index: int):
     """Print the raw YAML manifest for an indexed resource."""
     command = YamlCommand(state=_state, kubectl=_kubectl)
-    typer.echo(command.execute(index))
+    console.print_raw(command.execute(index))
 
 
 @app.command()
@@ -89,7 +118,7 @@ def delete(
         kubectl=_kubectl,
         confirm=lambda msg: typer.confirm(msg, abort=True),
     )
-    typer.echo(command.execute(index, yes))
+    console.print_success(command.execute(index, yes))
 
 
 @app.command(
@@ -97,6 +126,8 @@ def delete(
 )
 def edit(ctx: typer.Context, index: int):
     """Open an indexed resource in your editor via kubectl edit."""
+    name, _ns, kind = _state.fields(index)
+    console.print_banner(kind, name)
     command = EditCommand(state=_state, kubectl=_kubectl)
     command.execute(index, ctx.args)
 
@@ -113,11 +144,13 @@ def exec_cmd(
     ),
 ):
     """Open an interactive shell in an indexed pod (bash, falling back to sh)."""
+    name, _ns, kind = _state.fields(index)
+    console.print_banner(kind, name)
     command = ExecCommand(state=_state, kubectl=_kubectl)
     try:
         command.execute(index, cmd, ctx.args)
     except ValueError as e:
-        typer.echo(str(e))
+        console.print_error(str(e))
         raise typer.Exit(1)
 
 
@@ -129,15 +162,13 @@ def tree(
     ),
 ):
     """Show the ownership graph for an indexed resource (deployments, statefulsets, etc.)."""
-    from rich.console import Console
-
     command = TreeCommand(
         state=_state,
         kubectl=_kubectl,
         build_tree=build_tree,
         build_indexed_tree=build_indexed_tree,
     )
-    Console().print(command.execute(index, indexed))
+    console.print_rich(command.execute(index, indexed))
 
 
 @app.command(
@@ -146,11 +177,13 @@ def tree(
 )
 def port_forward(ctx: typer.Context, index: int, port: str):
     """Port forward to the specified resource at index."""
+    name, _ns, kind = _state.fields(index)
+    console.print_banner(kind, name, extra=port)
     command = PortForwardCommand(kubectl=_kubectl, state=_state)
     try:
         command.execute(index, port, ctx.args)
     except ValueError as e:
-        typer.echo(str(e))
+        console.print_error(str(e))
         raise typer.Exit(1)
 
 
@@ -159,10 +192,9 @@ def state():
     """Show the current state file."""
     command = StateCommand(state=_state)
     try:
-        state = command.execute()
-        typer.echo(state)
+        console.render_state(command.execute())
     except RuntimeError as e:
-        typer.echo(str(e))
+        console.print_error(str(e))
         raise typer.Exit(1)
 
 
