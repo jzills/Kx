@@ -203,10 +203,21 @@ def print_command_help(ctx) -> None:
     )
 
 
+_KX_ART = [
+    "██╗  ██╗██╗  ██╗",
+    "██║ ██╔╝╚██╗██╔╝",
+    "█████╔╝  ╚███╔╝ ",
+    "██╔═██╗  ██╔██╗ ",
+    "██║  ██╗██╔╝ ██╗",
+    "╚═╝  ╚═╝╚═╝  ╚═╝",
+]
+
+
 def print_help(commands: list[tuple[str, str]]) -> None:
     _console.print()
-    _console.print(f"[bold {COLOR_HEADER}]kx[/bold {COLOR_HEADER}]")
-    _console.print(f"[{COLOR_DIM}]kubectl, with indexes.[/{COLOR_DIM}]")
+    for line in _KX_ART:
+        _console.print(f"[bold {COLOR_HEADER}]{line}[/bold {COLOR_HEADER}]")
+    _console.print(f"[{COLOR_DIM}]kubectl, indexed.[/{COLOR_DIM}]")
     _console.print()
     _console.rule(style=COLOR_DIM)
     _console.print()
