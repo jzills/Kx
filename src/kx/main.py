@@ -88,7 +88,11 @@ def get(
 ):
     """List resources and assign index numbers for use with other commands."""
     command = GetCommand(kubectl=_kubectl, state=_state, index=_index)
-    result = command.execute(resource, match, ctx.args)
+    try:
+        result = command.execute(resource, match, ctx.args)
+    except RuntimeError as e:
+        console.print_error(str(e))
+        raise typer.Exit(1)
     all_namespaces = any(arg in ("-A", "--all-namespaces") for arg in ctx.args)
     if all_namespaces:
         namespace = "all namespaces"
@@ -130,7 +134,7 @@ def logs(ctx: typer.Context, index: int):
     command = LogsCommand(state=_state, kubectl=_kubectl)
     try:
         command.execute(index, ctx.args)
-    except ValueError as e:
+    except (ValueError, RuntimeError) as e:
         console.print_error(str(e))
         raise typer.Exit(1)
 
@@ -139,7 +143,11 @@ def logs(ctx: typer.Context, index: int):
 def yaml(index: int):
     """Print the raw YAML manifest for an indexed resource."""
     command = YamlCommand(state=_state, kubectl=_kubectl)
-    console.print_raw(command.execute(index))
+    try:
+        console.print_raw(command.execute(index))
+    except RuntimeError as e:
+        console.print_error(str(e))
+        raise typer.Exit(1)
 
 
 @app.command(cls=StyledCommand)
@@ -153,7 +161,11 @@ def delete(
         kubectl=_kubectl,
         confirm=lambda msg: typer.confirm(msg, abort=True),
     )
-    console.print_success(command.execute(index, yes))
+    try:
+        console.print_success(command.execute(index, yes))
+    except RuntimeError as e:
+        console.print_error(str(e))
+        raise typer.Exit(1)
 
 
 @app.command(

@@ -14,8 +14,9 @@ class KubectlService:
             ["kubectl", *args],
             capture_output=True,
             text=True,
-            check=True,
         )
+        if result.returncode != 0:
+            raise RuntimeError(result.stderr.strip())
         return result.stdout
 
     def run_interactive(self, args: list[str]) -> int:
