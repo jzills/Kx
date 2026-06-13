@@ -42,11 +42,14 @@ def configure(plain: bool) -> None:
 
 
 def print_success(msg: str) -> None:
-    _console.print(f"[{COLOR_HEADER}]✓[/{COLOR_HEADER}] {msg}")
+    _console.print(f"[bold {COLOR_HEADER}]✓[/bold {COLOR_HEADER}] {msg}")
 
 
 def print_error(msg: str) -> None:
-    _console.print(f"[{COLOR_ERROR}]✗[/{COLOR_ERROR}] {msg}")
+    styled = re.sub(r"'([^']+)'", f"[{COLOR_HEADER}]'\\1'[/{COLOR_HEADER}]", msg)
+    _console.print(
+        f"[bold {COLOR_HEADER}]✗[/bold {COLOR_HEADER}] [{COLOR_BODY}]{styled}[/{COLOR_BODY}]"
+    )
 
 
 def print_banner(kind: str, name: str, extra: str = "") -> None:
@@ -92,14 +95,40 @@ def render_indexed_table(text: str, resource_type: str, namespace: str) -> None:
         if cols:
             rows.append(cols)
 
+    restarts_col = headers.index("RESTARTS") if "RESTARTS" in headers else -1
+    if restarts_col >= 0:
+        max_num_width = max(
+            (
+                len(m.group(1))
+                for row in rows
+                if restarts_col < len(row)
+                for m in [re.match(r"(\d+)", row[restarts_col])]
+                if m
+            ),
+            default=0,
+        )
+        if max_num_width:
+            rows = [
+                [
+                    re.sub(r"^(\d+)", lambda m: m.group(1).rjust(max_num_width), cell)
+                    if col_idx == restarts_col
+                    else cell
+                    for col_idx, cell in enumerate(row)
+                ]
+                for row in rows
+            ]
+
     table = Table(
         show_header=True,
         header_style=f"bold {COLOR_HEADER}",
         box=None,
         padding=(0, 2),
     )
+    _right_aligned = {"X", "AGE"}
     for header in headers:
-        table.add_column(header)
+        table.add_column(
+            header, justify="right" if header in _right_aligned else "left"
+        )
 
     status_col = headers.index("STATUS") if "STATUS" in headers else -1
 

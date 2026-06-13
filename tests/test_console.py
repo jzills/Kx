@@ -74,10 +74,10 @@ def test_render_indexed_table_singular_item(capture_console):
     assert "1 item" in capture_console.getvalue()
 
 
-def test_render_indexed_table_uses_hash_not_x(capture_console):
+def test_render_indexed_table_shows_x_header(capture_console):
     kx_console.render_indexed_table(INDEXED_OUTPUT, "pods", "default")
     out = capture_console.getvalue()
-    assert "#" in out
+    assert "X" in out
 
 
 def test_render_indexed_table_shows_all_names(capture_console):

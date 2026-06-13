@@ -1,4 +1,17 @@
-# kx
+<div align="center">
+
+```
+██╗  ██╗██╗  ██╗
+██║ ██╔╝╚██╗██╔╝
+█████╔╝  ╚███╔╝ 
+██╔═██╗  ██╔██╗ 
+██║  ██╗██╔╝ ██╗
+╚═╝  ╚═╝╚═╝  ╚═╝
+```
+
+**kubectl, indexed.**
+
+</div>
 
 `kx` is a kubectl wrapper that adds index-based resource selection. Run `kx get <resource>` once, then reference any result by number instead of typing full resource names.
 
@@ -42,7 +55,7 @@ All subsequent commands reference resources by their `X` index from the last `kx
 | `kx delete <index> [-y]` | Delete the resource (prompts for confirmation; `-y` skips it) |
 | `kx tree <index> [--index\|-i]` | Show the ownership graph for a resource; `--index` assigns indexes to tree nodes |
 | `kx port-forward <index> <port> [kubectl flags...]` | Forward a local port to a resource (supports Pod, Deployment, ReplicaSet, StatefulSet, DaemonSet, Service) |
-| `kx state` | Show the current state (last `kx get` result) as JSON |
+| `kx state` | Show the current state (namespace and indexed resources from the last `kx get`) |
 
 ### Example workflow
 
