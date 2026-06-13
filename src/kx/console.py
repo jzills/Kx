@@ -275,5 +275,7 @@ def render_state(json_str: str) -> None:
     namespace = data.get("namespace", "default")
     resources = data.get("resources", {})
     _console.print(f"[{COLOR_DIM}]namespace:[/{COLOR_DIM}] {namespace}")
-    for name, kind in resources.items():
-        _console.print(f"  [{COLOR_HEADER}]{kind}[/{COLOR_HEADER}] {name}")
+    for index, (name, kind) in enumerate(resources.items(), start=1):
+        _console.print(
+            f"  [{COLOR_DIM}]{index}[/{COLOR_DIM}]  [{COLOR_HEADER}]{kind}[/{COLOR_HEADER}] {name}"
+        )

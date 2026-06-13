@@ -10,12 +10,16 @@ if TYPE_CHECKING:
 def resolve_index(state, index: int) -> str:
     names = list(state.resources.keys())
     if index < 1:
-        typer.echo("Invalid index")
+        from kx.console import print_error
+
+        print_error("Invalid index")
         raise typer.Exit(1)
     try:
         return names[index - 1]
     except IndexError:
-        typer.echo("Invalid index")
+        from kx.console import print_error
+
+        print_error("Invalid index")
         raise typer.Exit(1)
 
 
