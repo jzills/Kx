@@ -159,6 +159,50 @@ def render_events_table(text: str) -> None:
     _console.print(table)
 
 
+def print_command_help(ctx) -> None:
+    import click as _click
+
+    cmd = ctx.command
+    _console.print()
+    _console.print(f"[bold {COLOR_HEADER}]{ctx.command_path}[/bold {COLOR_HEADER}]")
+    if cmd.help:
+        _console.print(f"[{COLOR_DIM}]{cmd.help}[/{COLOR_DIM}]")
+    _console.print()
+    _console.rule(style=COLOR_DIM)
+    _console.print()
+
+    args = [p for p in cmd.params if isinstance(p, _click.Argument)]
+    opts = [
+        p for p in cmd.params if isinstance(p, _click.Option) and "--help" not in p.opts
+    ]
+
+    args_str = " ".join(p.human_readable_name for p in args)
+    usage = f"{ctx.command_path} [OPTIONS]"
+    if args_str:
+        usage += f" {args_str}"
+    _console.print(f"[{COLOR_DIM}]Usage[/{COLOR_DIM}]  {usage}", highlight=False)
+
+    if args:
+        _console.print()
+        _console.print(f"[bold {COLOR_HEADER}]Arguments[/bold {COLOR_HEADER}]")
+        for arg in args:
+            label = "required" if arg.required else "optional"
+            _console.print(
+                f"  [{COLOR_BODY}]{arg.human_readable_name:<16}[/{COLOR_BODY}]  [{COLOR_DIM}]{label}[/{COLOR_DIM}]"
+            )
+
+    _console.print()
+    _console.print(f"[bold {COLOR_HEADER}]Options[/bold {COLOR_HEADER}]")
+    for opt in opts:
+        names = "  ".join(opt.opts)
+        _console.print(
+            f"  [{COLOR_BODY}]{names:<20}[/{COLOR_BODY}]  [{COLOR_DIM}]{opt.help or ''}[/{COLOR_DIM}]"
+        )
+    _console.print(
+        f"  [{COLOR_BODY}]{'--help':<20}[/{COLOR_BODY}]  [{COLOR_DIM}]Show this message and exit.[/{COLOR_DIM}]"
+    )
+
+
 def print_help(commands: list[tuple[str, str]]) -> None:
     _console.print()
     _console.print(f"[bold {COLOR_HEADER}]kx[/bold {COLOR_HEADER}]")
