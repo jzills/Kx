@@ -4,6 +4,8 @@ import json
 from rich.console import Console
 from rich.table import Table
 
+from kx.kinds import plural_display
+
 COLOR_HEADER = "#3fb950"
 COLOR_DIM = "#7d8590"
 COLOR_BODY = "#e6edf3"
@@ -97,7 +99,7 @@ def render_indexed_table(text: str, resource_type: str, namespace: str) -> None:
         padding=(0, 2),
     )
     for header in headers:
-        table.add_column("#" if header == "X" else header)
+        table.add_column(header)
 
     status_col = headers.index("STATUS") if "STATUS" in headers else -1
 
@@ -113,7 +115,7 @@ def render_indexed_table(text: str, resource_type: str, namespace: str) -> None:
     count = len(rows)
     label = "item" if count == 1 else "items"
     _console.print(
-        f"[{COLOR_DIM}]{resource_type.upper()} · {namespace} · {count} {label}[/{COLOR_DIM}]"
+        f"[{COLOR_DIM}]{plural_display(resource_type)} · {namespace} · {count} {label}[/{COLOR_DIM}]"
     )
     _console.print(table)
 
@@ -155,6 +157,88 @@ def render_events_table(text: str) -> None:
         )
 
     _console.print(table)
+
+
+def print_command_help(ctx) -> None:
+    import click as _click
+
+    cmd = ctx.command
+    _console.print()
+    _console.print(f"[bold {COLOR_HEADER}]{ctx.command_path}[/bold {COLOR_HEADER}]")
+    if cmd.help:
+        _console.print(f"[{COLOR_DIM}]{cmd.help}[/{COLOR_DIM}]")
+    _console.print()
+    _console.rule(style=COLOR_DIM)
+    _console.print()
+
+    args = [p for p in cmd.params if isinstance(p, _click.Argument)]
+    opts = [
+        p for p in cmd.params if isinstance(p, _click.Option) and "--help" not in p.opts
+    ]
+
+    args_str = " ".join(p.human_readable_name for p in args)
+    usage = f"{ctx.command_path} [OPTIONS]"
+    if args_str:
+        usage += f" {args_str}"
+    _console.print(f"[{COLOR_DIM}]Usage[/{COLOR_DIM}]  {usage}", highlight=False)
+
+    if args:
+        _console.print()
+        _console.print(f"[bold {COLOR_HEADER}]Arguments[/bold {COLOR_HEADER}]")
+        for arg in args:
+            label = "required" if arg.required else "optional"
+            _console.print(
+                f"  [{COLOR_BODY}]{arg.human_readable_name:<16}[/{COLOR_BODY}]  [{COLOR_DIM}]{label}[/{COLOR_DIM}]"
+            )
+
+    _console.print()
+    _console.print(f"[bold {COLOR_HEADER}]Options[/bold {COLOR_HEADER}]")
+    for opt in opts:
+        names = "  ".join(opt.opts)
+        _console.print(
+            f"  [{COLOR_BODY}]{names:<20}[/{COLOR_BODY}]  [{COLOR_DIM}]{opt.help or ''}[/{COLOR_DIM}]"
+        )
+    _console.print(
+        f"  [{COLOR_BODY}]{'--help':<20}[/{COLOR_BODY}]  [{COLOR_DIM}]Show this message and exit.[/{COLOR_DIM}]"
+    )
+
+
+_KX_ART = [
+    "██╗  ██╗██╗  ██╗",
+    "██║ ██╔╝╚██╗██╔╝",
+    "█████╔╝  ╚███╔╝ ",
+    "██╔═██╗  ██╔██╗ ",
+    "██║  ██╗██╔╝ ██╗",
+    "╚═╝  ╚═╝╚═╝  ╚═╝",
+]
+
+
+def print_help(commands: list[tuple[str, str]]) -> None:
+    _console.print()
+    for line in _KX_ART:
+        _console.print(f"[bold {COLOR_HEADER}]{line}[/bold {COLOR_HEADER}]")
+    _console.print(f"[{COLOR_DIM}]kubectl, indexed.[/{COLOR_DIM}]")
+    _console.print()
+    _console.rule(style=COLOR_DIM)
+    _console.print()
+    _console.print(
+        f"[{COLOR_DIM}]Usage[/{COLOR_DIM}]  kx [OPTIONS] COMMAND [ARGS]...",
+        highlight=False,
+    )
+    _console.print()
+    _console.print(f"[bold {COLOR_HEADER}]Commands[/bold {COLOR_HEADER}]")
+    for name, doc in commands:
+        _console.print(
+            f"  [{COLOR_BODY}]{name:<14}[/{COLOR_BODY}]  [{COLOR_DIM}]{doc}[/{COLOR_DIM}]"
+        )
+    _console.print()
+    _console.print(f"[bold {COLOR_HEADER}]Options[/bold {COLOR_HEADER}]")
+    _console.print(
+        f"  [{COLOR_BODY}]{'--no-color':<14}[/{COLOR_BODY}]  [{COLOR_DIM}]Disable styled output.[/{COLOR_DIM}]"
+    )
+    _console.print(
+        f"  [{COLOR_BODY}]{'--help':<14}[/{COLOR_BODY}]  [{COLOR_DIM}]Show this message and exit.[/{COLOR_DIM}]"
+    )
 
 
 def render_state(json_str: str) -> None:

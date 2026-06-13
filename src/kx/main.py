@@ -1,6 +1,9 @@
+import re
 from typing import Optional
 
+import click
 import typer
+import typer.rich_utils
 
 from kx import console
 from kx.commands.delete import DeleteCommand
@@ -20,21 +23,50 @@ from kx.index import IndexService
 from kx.kubectl import KubectlService
 from kx.state import StateService
 
+
+class StyledCommand(click.Command):
+    def __init__(self, *args, **kwargs):
+        kwargs.pop("rich_markup_mode", None)
+        kwargs.pop("rich_help_panel", None)
+        super().__init__(*args, **kwargs)
+
+    def get_help(self, ctx: click.Context) -> str:
+        console.print_command_help(ctx)
+        return ""
+
+
+def _styled_error(error: click.ClickException) -> None:
+    if error.__class__.__name__ == "NoArgsIsHelpError":
+        return
+    msg = re.sub(r"(\bDid you mean [^\?]+\?) \1", r"\1", error.format_message())
+    console.print_error(msg)
+
+
+typer.rich_utils.rich_format_error = _styled_error  # type: ignore[assignment]
+
 app = typer.Typer(
-    rich_markup_mode="rich",
-    help=(
-        f"[bold {console.COLOR_HEADER}]kx[/bold {console.COLOR_HEADER}]"
-        f"  [{console.COLOR_DIM}]kubectl, with indexes.[/{console.COLOR_DIM}]"
-    ),
+    add_help_option=False,
+    add_completion=False,
 )
 
 
-@app.callback()
+@app.callback(invoke_without_command=True)
 def callback(
+    ctx: typer.Context,
     no_color: bool = typer.Option(False, "--no-color", help="Disable styled output."),
+    show_help: bool = typer.Option(
+        False, "--help", is_eager=True, help="Show this message and exit."
+    ),
 ) -> None:
     if no_color:
         console.configure(plain=True)
+    if show_help or ctx.invoked_subcommand is None:
+        commands = [
+            (name, cmd.get_short_help_str(limit=55))
+            for name, cmd in ctx.command.commands.items()
+        ]
+        console.print_help(commands)
+        raise typer.Exit()
 
 
 _kubectl = KubectlService()
@@ -44,7 +76,8 @@ _index = IndexService()
 
 
 @app.command(
-    context_settings={"allow_extra_args": True, "ignore_unknown_options": True}
+    cls=StyledCommand,
+    context_settings={"allow_extra_args": True, "ignore_unknown_options": True},
 )
 def get(
     ctx: typer.Context,
@@ -68,7 +101,8 @@ def get(
 
 
 @app.command(
-    context_settings={"allow_extra_args": True, "ignore_unknown_options": True}
+    cls=StyledCommand,
+    context_settings={"allow_extra_args": True, "ignore_unknown_options": True},
 )
 def describe(ctx: typer.Context, index: int):
     """Show full kubectl describe output for an indexed resource."""
@@ -78,7 +112,7 @@ def describe(ctx: typer.Context, index: int):
     command.execute(index, ctx.args)
 
 
-@app.command()
+@app.command(cls=StyledCommand)
 def events(index: int):
     """Show Kubernetes events for an indexed resource."""
     command = EventsCommand(state=_state, events=_events)
@@ -86,7 +120,8 @@ def events(index: int):
 
 
 @app.command(
-    context_settings={"allow_extra_args": True, "ignore_unknown_options": True}
+    cls=StyledCommand,
+    context_settings={"allow_extra_args": True, "ignore_unknown_options": True},
 )
 def logs(ctx: typer.Context, index: int):
     """Stream logs for an indexed resource; aggregates across pods for Deployments, StatefulSets, DaemonSets, and Services."""
@@ -100,14 +135,14 @@ def logs(ctx: typer.Context, index: int):
         raise typer.Exit(1)
 
 
-@app.command()
+@app.command(cls=StyledCommand)
 def yaml(index: int):
     """Print the raw YAML manifest for an indexed resource."""
     command = YamlCommand(state=_state, kubectl=_kubectl)
     console.print_raw(command.execute(index))
 
 
-@app.command()
+@app.command(cls=StyledCommand)
 def delete(
     index: int,
     yes: bool = typer.Option(False, "--yes", "-y", help="Skip confirmation prompt"),
@@ -122,7 +157,8 @@ def delete(
 
 
 @app.command(
-    context_settings={"allow_extra_args": True, "ignore_unknown_options": True}
+    cls=StyledCommand,
+    context_settings={"allow_extra_args": True, "ignore_unknown_options": True},
 )
 def edit(ctx: typer.Context, index: int):
     """Open an indexed resource in your editor via kubectl edit."""
@@ -134,6 +170,7 @@ def edit(ctx: typer.Context, index: int):
 
 @app.command(
     name="exec",
+    cls=StyledCommand,
     context_settings={"allow_extra_args": True, "ignore_unknown_options": True},
 )
 def exec_cmd(
@@ -154,7 +191,7 @@ def exec_cmd(
         raise typer.Exit(1)
 
 
-@app.command()
+@app.command(cls=StyledCommand)
 def tree(
     index: int,
     indexed: bool = typer.Option(
@@ -173,6 +210,7 @@ def tree(
 
 @app.command(
     "port-forward",
+    cls=StyledCommand,
     context_settings={"allow_extra_args": True, "ignore_unknown_options": True},
 )
 def port_forward(ctx: typer.Context, index: int, port: str):
@@ -187,7 +225,7 @@ def port_forward(ctx: typer.Context, index: int, port: str):
         raise typer.Exit(1)
 
 
-@app.command()
+@app.command(cls=StyledCommand)
 def state():
     """Show the current state file."""
     command = StateCommand(state=_state)
