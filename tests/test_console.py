@@ -27,11 +27,9 @@ def test_print_error_outputs_x(capture_console):
     assert "something went wrong" in out
 
 
-def test_print_banner_outputs_arrow_and_resource(capture_console):
+def test_print_banner_outputs_resource(capture_console):
     kx_console.print_banner("Pod", "nginx-abc123")
-    out = capture_console.getvalue()
-    assert "→" in out
-    assert "Pod/nginx-abc123" in out
+    assert "Pod/nginx-abc123" in capture_console.getvalue()
 
 
 def test_print_banner_includes_extra_when_provided(capture_console):
@@ -41,19 +39,19 @@ def test_print_banner_includes_extra_when_provided(capture_console):
 
 def test_print_banner_includes_namespace(capture_console):
     kx_console.print_banner("Pod", "nginx-abc123", namespace="kube-system")
-    assert "→ Pod/nginx-abc123 · kube-system" in capture_console.getvalue()
+    assert "Pod/nginx-abc123 · kube-system" in capture_console.getvalue()
 
 
 def test_print_banner_includes_namespace_and_extra(capture_console):
     kx_console.print_banner(
         "Pod", "nginx-abc123", namespace="kube-system", extra="2 labels"
     )
-    assert "→ Pod/nginx-abc123 · kube-system · 2 labels" in capture_console.getvalue()
+    assert "Pod/nginx-abc123 · kube-system · 2 labels" in capture_console.getvalue()
 
 
 def test_print_banner_extra_without_namespace(capture_console):
     kx_console.print_banner("Pod", "nginx-abc123", extra="8080:80")
-    assert "→ Pod/nginx-abc123 · 8080:80" in capture_console.getvalue()
+    assert "Pod/nginx-abc123 · 8080:80" in capture_console.getvalue()
 
 
 def test_print_raw_outputs_text_verbatim(capture_console):

@@ -53,7 +53,7 @@ def print_error(msg: str) -> None:
 
 
 def print_banner(kind: str, name: str, namespace: str = "", extra: str = "") -> None:
-    parts = [f"→ {kind}/{name}"]
+    parts = [f"{kind}/{name}"]
     if namespace:
         parts.append(namespace)
     if extra:
