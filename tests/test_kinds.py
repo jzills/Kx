@@ -1,4 +1,4 @@
-from kx.kinds import Kind, normalize_kind
+from kx.kinds import Kind, normalize_kind, plural_display
 
 
 def test_kind_is_str():
@@ -92,3 +92,15 @@ def test_normalize_kind_node():
 
 def test_normalize_kind_namespace():
     assert normalize_kind("namespace") == Kind.Namespace
+
+
+def test_plural_display_pods_is_pascal_case():
+    assert plural_display("pods") == "Pods"
+
+
+def test_plural_display_deployments_is_pascal_case():
+    assert plural_display("deployments") == "Deployments"
+
+
+def test_plural_display_unknown_passthrough():
+    assert plural_display("mycrd") == "mycrd"

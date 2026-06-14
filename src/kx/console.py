@@ -52,9 +52,13 @@ def print_error(msg: str) -> None:
     )
 
 
-def print_banner(kind: str, name: str, extra: str = "") -> None:
-    suffix = f" {extra}" if extra else ""
-    _console.print(f"[{COLOR_DIM}]→ {kind}/{name}{suffix}[/{COLOR_DIM}]")
+def print_banner(kind: str, name: str, namespace: str = "", extra: str = "") -> None:
+    parts = [f"{kind}/{name}"]
+    if namespace:
+        parts.append(namespace)
+    if extra:
+        parts.append(extra)
+    _console.print(f"[{COLOR_DIM}]{' · '.join(parts)}[/{COLOR_DIM}]")
 
 
 def print_raw(text: str) -> None:
@@ -272,12 +276,45 @@ def print_help(commands: list[tuple[str, str]]) -> None:
     )
 
 
+def render_labels(labels: dict[str, str]) -> None:
+    if not labels:
+        _console.print(f"[{COLOR_DIM}]No labels.[/{COLOR_DIM}]")
+        return
+    table = Table(
+        show_header=True,
+        header_style=f"bold {COLOR_HEADER}",
+        box=None,
+        padding=(0, 2),
+    )
+    table.add_column("LABEL")
+    table.add_column("VALUE", style=COLOR_DIM)
+    for key, value in labels.items():
+        table.add_row(key, value)
+    _console.print(table)
+
+
 def render_state(json_str: str) -> None:
     data = json.loads(json_str)
     namespace = data.get("namespace", "default")
     resources = data.get("resources", {})
-    _console.print(f"[{COLOR_DIM}]namespace:[/{COLOR_DIM}] {namespace}")
+    count = len(resources)
+    label = "item" if count == 1 else "items"
+    unique_kinds = set(resources.values())
+    kind_label = (
+        plural_display(next(iter(unique_kinds))) if len(unique_kinds) == 1 else "Mixed"
+    )
+    _console.print(
+        f"[{COLOR_DIM}]{kind_label} · {namespace} · {count} {label}[/{COLOR_DIM}]"
+    )
+    table = Table(
+        show_header=True,
+        header_style=f"bold {COLOR_HEADER}",
+        box=None,
+        padding=(0, 2),
+    )
+    table.add_column("X", justify="right")
+    table.add_column("KIND")
+    table.add_column("NAME")
     for index, (name, kind) in enumerate(resources.items(), start=1):
-        _console.print(
-            f"  [{COLOR_DIM}]{index}[/{COLOR_DIM}]  [{COLOR_HEADER}]{kind}[/{COLOR_HEADER}] {name}"
-        )
+        table.add_row(str(index), str(kind), name)
+    _console.print(table)
