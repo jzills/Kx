@@ -111,8 +111,8 @@ def get(
 )
 def describe(ctx: typer.Context, index: int):
     """Show full kubectl describe output for an indexed resource."""
-    name, _ns, kind = _state.fields(index)
-    console.print_banner(kind, name)
+    name, ns, kind = _state.fields(index)
+    console.print_banner(kind, name, namespace=ns)
     command = DescribeCommand(state=_state, kubectl=_kubectl)
     command.execute(index, ctx.args)
 
@@ -130,8 +130,8 @@ def events(index: int):
 )
 def logs(ctx: typer.Context, index: int):
     """Stream logs for an indexed resource; aggregates across pods for Deployments, StatefulSets, DaemonSets, and Services."""
-    name, _ns, kind = _state.fields(index)
-    console.print_banner(kind, name)
+    name, ns, kind = _state.fields(index)
+    console.print_banner(kind, name, namespace=ns)
     command = LogsCommand(state=_state, kubectl=_kubectl)
     try:
         command.execute(index, ctx.args)
@@ -167,6 +167,8 @@ def labels(
 @app.command(cls=StyledCommand)
 def yaml(index: int):
     """Print the raw YAML manifest for an indexed resource."""
+    name, ns, kind = _state.fields(index)
+    console.print_banner(kind, name, namespace=ns)
     command = YamlCommand(state=_state, kubectl=_kubectl)
     try:
         console.print_raw(command.execute(index))
@@ -199,8 +201,8 @@ def delete(
 )
 def edit(ctx: typer.Context, index: int):
     """Open an indexed resource in your editor via kubectl edit."""
-    name, _ns, kind = _state.fields(index)
-    console.print_banner(kind, name)
+    name, ns, kind = _state.fields(index)
+    console.print_banner(kind, name, namespace=ns)
     command = EditCommand(state=_state, kubectl=_kubectl)
     command.execute(index, ctx.args)
 
@@ -218,8 +220,8 @@ def exec_cmd(
     ),
 ):
     """Open an interactive shell in an indexed pod (bash, falling back to sh)."""
-    name, _ns, kind = _state.fields(index)
-    console.print_banner(kind, name)
+    name, ns, kind = _state.fields(index)
+    console.print_banner(kind, name, namespace=ns)
     command = ExecCommand(state=_state, kubectl=_kubectl)
     try:
         command.execute(index, cmd, ctx.args)
@@ -236,6 +238,8 @@ def tree(
     ),
 ):
     """Show the ownership graph for an indexed resource (deployments, statefulsets, etc.)."""
+    name, ns, kind = _state.fields(index)
+    console.print_banner(kind, name, namespace=ns)
     command = TreeCommand(
         state=_state,
         kubectl=_kubectl,
@@ -252,8 +256,8 @@ def tree(
 )
 def port_forward(ctx: typer.Context, index: int, port: str):
     """Port forward to the specified resource at index."""
-    name, _ns, kind = _state.fields(index)
-    console.print_banner(kind, name, extra=port)
+    name, ns, kind = _state.fields(index)
+    console.print_banner(kind, name, namespace=ns, extra=port)
     command = PortForwardCommand(kubectl=_kubectl, state=_state)
     try:
         command.execute(index, port, ctx.args)
