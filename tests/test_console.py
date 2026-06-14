@@ -64,7 +64,7 @@ X   NAME       READY   STATUS    AGE
 def test_render_indexed_table_shows_metadata_header(capture_console):
     kx_console.render_indexed_table(INDEXED_OUTPUT, "pods", "default")
     out = capture_console.getvalue()
-    assert "PODS" in out
+    assert "Pods" in out
     assert "default" in out
     assert "3 items" in out
 
