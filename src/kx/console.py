@@ -189,7 +189,7 @@ def render_events_table(text: str) -> None:
 
 
 def print_command_help(ctx) -> None:
-    import click as _click
+    from typer.core import TyperArgument, TyperOption
 
     cmd = ctx.command
     _console.print()
@@ -200,12 +200,14 @@ def print_command_help(ctx) -> None:
     _console.rule(style=COLOR_DIM)
     _console.print()
 
-    args = [p for p in cmd.params if isinstance(p, _click.Argument)]
+    args = [param for param in cmd.params if isinstance(param, TyperArgument)]
     opts = [
-        p for p in cmd.params if isinstance(p, _click.Option) and "--help" not in p.opts
+        param
+        for param in cmd.params
+        if isinstance(param, TyperOption) and "--help" not in param.opts
     ]
 
-    args_str = " ".join(p.human_readable_name for p in args)
+    args_str = " ".join(arg.human_readable_name for arg in args)
     usage = f"{ctx.command_path} [OPTIONS]"
     if args_str:
         usage += f" {args_str}"
