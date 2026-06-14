@@ -1,9 +1,9 @@
 import re
 from typing import Optional
 
-import click
 import typer
 import typer.rich_utils
+from typer.core import TyperCommand
 
 from kx import console
 from kx.commands.delete import DeleteCommand
@@ -24,18 +24,18 @@ from kx.kubectl import KubectlService
 from kx.state import StateService
 
 
-class StyledCommand(click.Command):
+class StyledCommand(TyperCommand):
     def __init__(self, *args, **kwargs):
         kwargs.pop("rich_markup_mode", None)
         kwargs.pop("rich_help_panel", None)
         super().__init__(*args, **kwargs)
 
-    def get_help(self, ctx: click.Context) -> str:
+    def get_help(self, ctx: typer.Context) -> str:
         console.print_command_help(ctx)
         return ""
 
 
-def _styled_error(error: click.ClickException) -> None:
+def _styled_error(error) -> None:
     if error.__class__.__name__ == "NoArgsIsHelpError":
         return
     msg = re.sub(r"(\bDid you mean [^\?]+\?) \1", r"\1", error.format_message())
