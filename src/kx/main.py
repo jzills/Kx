@@ -120,8 +120,16 @@ def describe(ctx: typer.Context, index: int):
 @app.command(cls=StyledCommand)
 def events(index: int):
     """Show Kubernetes events for an indexed resource."""
+    name, ns, kind = _state.fields(index)
     command = EventsCommand(state=_state, events=_events)
-    console.render_events_table(command.execute(index))
+    result = command.execute(index)
+    if result.strip() == "No events found":
+        count = 0
+    else:
+        count = len([line for line in result.splitlines() if line.strip()])
+    extra = f"{count} {'event' if count == 1 else 'events'}" if count else ""
+    console.print_banner(kind, name, namespace=ns, extra=extra)
+    console.render_events_table(result)
 
 
 @app.command(
@@ -154,8 +162,10 @@ def labels(
     except RuntimeError as e:
         console.print_error(str(e))
         raise typer.Exit(1)
-    name, _ns, kind = _state.fields(index)
-    console.print_banner(kind, name)
+    name, ns, kind = _state.fields(index)
+    count = len(label_map)
+    extra = f"{count} {'label' if count == 1 else 'labels'}"
+    console.print_banner(kind, name, namespace=ns, extra=extra)
     if selector:
         console.print_raw(
             ",".join(f"{key}={value}" for key, value in label_map.items())
