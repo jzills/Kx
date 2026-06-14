@@ -297,8 +297,18 @@ def render_state(json_str: str) -> None:
     data = json.loads(json_str)
     namespace = data.get("namespace", "default")
     resources = data.get("resources", {})
-    _console.print(f"[{COLOR_DIM}]→ Namespace/{namespace}[/{COLOR_DIM}]")
+    count = len(resources)
+    label = "item" if count == 1 else "items"
+    _console.print(f"[{COLOR_DIM}]{namespace} · {count} {label}[/{COLOR_DIM}]")
+    table = Table(
+        show_header=True,
+        header_style=f"bold {COLOR_HEADER}",
+        box=None,
+        padding=(0, 2),
+    )
+    table.add_column("X", justify="right")
+    table.add_column("KIND")
+    table.add_column("NAME")
     for index, (name, kind) in enumerate(resources.items(), start=1):
-        _console.print(
-            f"  [{COLOR_DIM}]{index}[/{COLOR_DIM}]  [{COLOR_HEADER}]{kind}[/{COLOR_HEADER}] {name}"
-        )
+        table.add_row(str(index), str(kind), name)
+    _console.print(table)

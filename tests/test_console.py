@@ -151,9 +151,22 @@ STATE_MULTI_KIND = (
 )
 
 
-def test_render_state_shows_namespace(capture_console):
+def test_render_state_shows_namespace_in_header(capture_console):
     kx_console.render_state(STATE_JSON)
     assert "staging" in capture_console.getvalue()
+
+
+def test_render_state_shows_item_count(capture_console):
+    kx_console.render_state(STATE_JSON)
+    assert "2 items" in capture_console.getvalue()
+
+
+def test_render_state_shows_table_headers(capture_console):
+    kx_console.render_state(STATE_JSON)
+    out = capture_console.getvalue()
+    assert "X" in out
+    assert "KIND" in out
+    assert "NAME" in out
 
 
 def test_render_state_shows_resource_names(capture_console):
@@ -173,3 +186,9 @@ def test_render_state_multi_kind(capture_console):
     out = capture_console.getvalue()
     assert "Deployment" in out
     assert "my-app" in out
+
+
+def test_render_state_singular_item(capture_console):
+    single = '{"resources": {"nginx": "Pod"}, "namespace": "default"}'
+    kx_console.render_state(single)
+    assert "1 item" in capture_console.getvalue()
