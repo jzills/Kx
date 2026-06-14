@@ -127,7 +127,7 @@ def events(index: int):
         count = 0
     else:
         count = len([line for line in result.splitlines() if line.strip()])
-    extra = f"{count} {'event' if count == 1 else 'events'}" if count else ""
+    extra = f"{count} {'item' if count == 1 else 'items'}" if count else ""
     console.print_banner(kind, name, namespace=ns, extra=extra)
     console.render_events_table(result)
 
@@ -166,7 +166,7 @@ def labels(
         raise typer.Exit(1)
     name, ns, kind = _state.fields(index)
     count = len(label_map)
-    extra = f"{count} {'label' if count == 1 else 'labels'}"
+    extra = f"{count} {'item' if count == 1 else 'items'}"
     console.print_banner(kind, name, namespace=ns, extra=extra)
     if selector:
         console.print_raw(
