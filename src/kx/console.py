@@ -52,9 +52,13 @@ def print_error(msg: str) -> None:
     )
 
 
-def print_banner(kind: str, name: str, extra: str = "") -> None:
-    suffix = f" {extra}" if extra else ""
-    _console.print(f"[{COLOR_DIM}]→ {kind}/{name}{suffix}[/{COLOR_DIM}]")
+def print_banner(kind: str, name: str, namespace: str = "", extra: str = "") -> None:
+    parts = [f"→ {kind}/{name}"]
+    if namespace:
+        parts.append(namespace)
+    if extra:
+        parts.append(extra)
+    _console.print(f"[{COLOR_DIM}]{' · '.join(parts)}[/{COLOR_DIM}]")
 
 
 def print_raw(text: str) -> None:
@@ -293,7 +297,7 @@ def render_state(json_str: str) -> None:
     data = json.loads(json_str)
     namespace = data.get("namespace", "default")
     resources = data.get("resources", {})
-    _console.print(f"[{COLOR_DIM}]namespace:[/{COLOR_DIM}] {namespace}")
+    _console.print(f"[{COLOR_DIM}]→ Namespace/{namespace}[/{COLOR_DIM}]")
     for index, (name, kind) in enumerate(resources.items(), start=1):
         _console.print(
             f"  [{COLOR_DIM}]{index}[/{COLOR_DIM}]  [{COLOR_HEADER}]{kind}[/{COLOR_HEADER}] {name}"
