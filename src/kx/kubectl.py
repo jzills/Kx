@@ -4,7 +4,8 @@ from typing import Protocol
 
 class KubectlServiceProtocol(Protocol):
     def run(self, args: list[str]) -> str: ...
-    def run_interactive(self, args: list[str]) -> int: ...
+    def run_interactive(self, args: list[str], stderr: int | None = None) -> int: ...
+    def probe(self, args: list[str]) -> int: ...
     def current_namespace(self) -> str: ...
 
 
@@ -19,8 +20,12 @@ class KubectlService:
             raise RuntimeError(result.stderr.strip())
         return result.stdout
 
-    def run_interactive(self, args: list[str]) -> int:
-        result = subprocess.run(["kubectl", *args])
+    def run_interactive(self, args: list[str], stderr: int | None = None) -> int:
+        result = subprocess.run(["kubectl", *args], stderr=stderr)
+        return result.returncode
+
+    def probe(self, args: list[str]) -> int:
+        result = subprocess.run(["kubectl", *args], capture_output=True)
         return result.returncode
 
     def current_namespace(self) -> str:

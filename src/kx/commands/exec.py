@@ -1,6 +1,10 @@
+import subprocess
+
 from kx.kinds import Kind
 from kx.kubectl import KubectlServiceProtocol
 from kx.state import StateServiceProtocol
+
+_SHELLS = ["bash", "sh"]
 
 
 class ExecCommand:
@@ -15,14 +19,32 @@ class ExecCommand:
         if kind != Kind.Pod:
             raise ValueError("exec is only supported for pods.")
         if cmd:
-            self.kubectl.run_interactive(
-                ["exec", "-it", name, "-n", namespace, *extra_args, "--", *cmd]
-            )
-        else:
             rc = self.kubectl.run_interactive(
-                ["exec", "-it", name, "-n", namespace, *extra_args, "--", "bash"]
+                ["exec", "-it", name, "-n", namespace, *extra_args, "--", *cmd],
+                stderr=subprocess.DEVNULL,
             )
             if rc != 0:
-                self.kubectl.run_interactive(
-                    ["exec", "-it", name, "-n", namespace, *extra_args, "--", "sh"]
+                raise ValueError(f"Command failed in container (exit {rc}).")
+        else:
+            for shell in _SHELLS:
+                probe_rc = self.kubectl.probe(
+                    [
+                        "exec",
+                        name,
+                        "-n",
+                        namespace,
+                        *extra_args,
+                        "--",
+                        shell,
+                        "-c",
+                        "exit 0",
+                    ]
                 )
+                if probe_rc == 0:
+                    self.kubectl.run_interactive(
+                        ["exec", "-it", name, "-n", namespace, *extra_args, "--", shell]
+                    )
+                    return
+            raise ValueError(
+                "No shell found in container. Provide an explicit command: kx exec <index> -- /path/to/binary"
+            )

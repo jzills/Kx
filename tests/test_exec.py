@@ -1,3 +1,4 @@
+import subprocess
 import pytest
 from unittest.mock import MagicMock
 from kx.commands.exec import ExecCommand
@@ -9,32 +10,52 @@ def _make_command(name="nginx", namespace="default", kind=Kind.Pod):
     state.fields.return_value = (name, namespace, kind)
     kubectl = MagicMock()
     kubectl.run_interactive.return_value = 0
+    kubectl.probe.return_value = 0
     return ExecCommand(state=state, kubectl=kubectl), state, kubectl
 
 
 class TestExecCommand:
     def test_default_shell_bash(self):
         cmd, _, kubectl = _make_command()
+        kubectl.probe.return_value = 0
         cmd.execute(1, None)
+        kubectl.probe.assert_called_once_with(
+            ["exec", "nginx", "-n", "default", "--", "bash", "-c", "exit 0"]
+        )
         kubectl.run_interactive.assert_called_once_with(
             ["exec", "-it", "nginx", "-n", "default", "--", "bash"]
         )
 
-    def test_falls_back_to_sh_when_bash_fails(self):
+    def test_falls_back_to_sh_when_bash_probe_fails(self):
         cmd, _, kubectl = _make_command()
-        kubectl.run_interactive.return_value = 1
+        kubectl.probe.side_effect = [1, 0]
         cmd.execute(1, None)
-        assert kubectl.run_interactive.call_count == 2
-        kubectl.run_interactive.assert_called_with(
+        assert kubectl.probe.call_count == 2
+        kubectl.run_interactive.assert_called_once_with(
             ["exec", "-it", "nginx", "-n", "default", "--", "sh"]
         )
+
+    def test_error_when_both_shells_fail(self):
+        cmd, _, kubectl = _make_command()
+        kubectl.probe.return_value = 1
+        with pytest.raises(ValueError, match="No shell found"):
+            cmd.execute(1, None)
+        assert kubectl.probe.call_count == 2
+        kubectl.run_interactive.assert_not_called()
 
     def test_explicit_cmd(self):
         cmd, _, kubectl = _make_command()
         cmd.execute(1, ["python3"])
         kubectl.run_interactive.assert_called_once_with(
-            ["exec", "-it", "nginx", "-n", "default", "--", "python3"]
+            ["exec", "-it", "nginx", "-n", "default", "--", "python3"],
+            stderr=subprocess.DEVNULL,
         )
+
+    def test_explicit_cmd_failure_raises_value_error(self):
+        cmd, _, kubectl = _make_command()
+        kubectl.run_interactive.return_value = 1
+        with pytest.raises(ValueError, match="Command failed in container"):
+            cmd.execute(1, ["env"])
 
     def test_non_pod_raises_value_error(self):
         cmd, _, _ = _make_command(kind=Kind.Deployment)
@@ -49,6 +70,20 @@ class TestExecCommand:
     def test_extra_args_with_default_shell(self):
         cmd, _, kubectl = _make_command()
         cmd.execute(1, None, extra_args=["-c", "sidecar"])
+        kubectl.probe.assert_called_once_with(
+            [
+                "exec",
+                "nginx",
+                "-n",
+                "default",
+                "-c",
+                "sidecar",
+                "--",
+                "bash",
+                "-c",
+                "exit 0",
+            ]
+        )
         kubectl.run_interactive.assert_called_once_with(
             ["exec", "-it", "nginx", "-n", "default", "-c", "sidecar", "--", "bash"]
         )
@@ -57,5 +92,6 @@ class TestExecCommand:
         cmd, _, kubectl = _make_command()
         cmd.execute(1, ["sh"], extra_args=["-c", "sidecar"])
         kubectl.run_interactive.assert_called_once_with(
-            ["exec", "-it", "nginx", "-n", "default", "-c", "sidecar", "--", "sh"]
+            ["exec", "-it", "nginx", "-n", "default", "-c", "sidecar", "--", "sh"],
+            stderr=subprocess.DEVNULL,
         )
