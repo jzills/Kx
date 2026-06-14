@@ -159,6 +159,8 @@ def labels(
     command = LabelsCommand(state=_state, kubectl=_kubectl)
     try:
         label_map = command.execute(index)
+    except typer.Exit:
+        raise
     except RuntimeError as e:
         console.print_error(str(e))
         raise typer.Exit(1)
@@ -200,6 +202,8 @@ def delete(
     )
     try:
         console.print_success(command.execute(index, yes))
+    except typer.Exit:
+        raise
     except RuntimeError as e:
         console.print_error(str(e))
         raise typer.Exit(1)
