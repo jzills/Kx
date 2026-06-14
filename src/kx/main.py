@@ -7,6 +7,7 @@ from typer.core import TyperCommand
 
 from kx import console
 from kx.commands.delete import DeleteCommand
+from kx.commands.labels import LabelsCommand
 from kx.commands.describe import DescribeCommand
 from kx.commands.edit import EditCommand
 from kx.commands.events import EventsCommand
@@ -137,6 +138,30 @@ def logs(ctx: typer.Context, index: int):
     except (ValueError, RuntimeError) as e:
         console.print_error(str(e))
         raise typer.Exit(1)
+
+
+@app.command(cls=StyledCommand)
+def labels(
+    index: int,
+    selector: bool = typer.Option(
+        False, "--selector", "-s", help="Output as a copy-pastable label selector"
+    ),
+):
+    """Show labels for an indexed resource."""
+    command = LabelsCommand(state=_state, kubectl=_kubectl)
+    try:
+        label_map = command.execute(index)
+    except RuntimeError as e:
+        console.print_error(str(e))
+        raise typer.Exit(1)
+    name, _ns, kind = _state.fields(index)
+    console.print_banner(kind, name)
+    if selector:
+        console.print_raw(
+            ",".join(f"{key}={value}" for key, value in label_map.items())
+        )
+    else:
+        console.render_labels(label_map)
 
 
 @app.command(cls=StyledCommand)

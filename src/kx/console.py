@@ -272,6 +272,23 @@ def print_help(commands: list[tuple[str, str]]) -> None:
     )
 
 
+def render_labels(labels: dict[str, str]) -> None:
+    if not labels:
+        _console.print(f"[{COLOR_DIM}]No labels.[/{COLOR_DIM}]")
+        return
+    table = Table(
+        show_header=True,
+        header_style=f"bold {COLOR_HEADER}",
+        box=None,
+        padding=(0, 2),
+    )
+    table.add_column("LABEL")
+    table.add_column("VALUE", style=COLOR_DIM)
+    for key, value in labels.items():
+        table.add_row(key, value)
+    _console.print(table)
+
+
 def render_state(json_str: str) -> None:
     data = json.loads(json_str)
     namespace = data.get("namespace", "default")
