@@ -299,7 +299,13 @@ def render_state(json_str: str) -> None:
     resources = data.get("resources", {})
     count = len(resources)
     label = "item" if count == 1 else "items"
-    _console.print(f"[{COLOR_DIM}]{namespace} · {count} {label}[/{COLOR_DIM}]")
+    unique_kinds = set(resources.values())
+    kind_label = (
+        plural_display(next(iter(unique_kinds))) if len(unique_kinds) == 1 else "Mixed"
+    )
+    _console.print(
+        f"[{COLOR_DIM}]{kind_label} · {namespace} · {count} {label}[/{COLOR_DIM}]"
+    )
     table = Table(
         show_header=True,
         header_style=f"bold {COLOR_HEADER}",

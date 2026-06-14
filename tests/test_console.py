@@ -161,6 +161,16 @@ def test_render_state_shows_item_count(capture_console):
     assert "2 items" in capture_console.getvalue()
 
 
+def test_render_state_single_kind_pluralized_in_header(capture_console):
+    kx_console.render_state(STATE_JSON)
+    assert "Pods" in capture_console.getvalue()
+
+
+def test_render_state_mixed_kinds_shows_mixed_in_header(capture_console):
+    kx_console.render_state(STATE_MULTI_KIND)
+    assert "Mixed" in capture_console.getvalue()
+
+
 def test_render_state_shows_table_headers(capture_console):
     kx_console.render_state(STATE_JSON)
     out = capture_console.getvalue()
