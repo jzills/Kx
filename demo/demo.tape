@@ -1,9 +1,12 @@
 Output demo/demo.gif
 
 Set FontSize 16
-Set Width 900
-Set Height 600
+Set Width 1200
+Set Height 750
 Set FontFamily "Ubuntu Mono"
+Set BackgroundColor "#000000"
+Set ForegroundColor "#e6edf3"
+Set Framerate 30
 
 Hide
 Type "VIRTUAL_ENV_DISABLE_PROMPT=1 source .venv/bin/activate && clear"
