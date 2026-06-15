@@ -1,15 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="800" height="160" viewBox="0 0 800 160">
-  <rect width="800" height="160" fill="#0d1117"/>
-  <rect y="158" width="800" height="2" fill="#21262d"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="174" viewBox="0 0 800 174">
+  <rect width="800" height="174" fill="#0d1117"/>
+  <rect y="172" width="800" height="2" fill="#21262d"/>
 
-  <text font-family="'Courier New', Courier, monospace" font-size="14" fill="#3fb950" x="24" y="38">██╗  ██╗██╗  ██╗</text>
-  <text font-family="'Courier New', Courier, monospace" font-size="14" fill="#3fb950" x="24" y="57">██║ ██╔╝╚██╗██╔╝</text>
-  <text font-family="'Courier New', Courier, monospace" font-size="14" fill="#3fb950" x="24" y="76">█████╔╝  ╚███╔╝ </text>
-  <text font-family="'Courier New', Courier, monospace" font-size="14" fill="#3fb950" x="24" y="95">██╔═██╗  ██╔██╗ </text>
-  <text font-family="'Courier New', Courier, monospace" font-size="14" fill="#3fb950" x="24" y="114">██║  ██╗██╔╝ ██╗</text>
-  <text font-family="'Courier New', Courier, monospace" font-size="14" fill="#3fb950" x="24" y="133">╚═╝  ╚═╝╚═╝  ╚═╝</text>
+  <text font-family="'Courier New', Courier, monospace" font-size="14" fill="#3fb950" x="24" y="52">██╗  ██╗██╗  ██╗</text>
+  <text font-family="'Courier New', Courier, monospace" font-size="14" fill="#3fb950" x="24" y="71">██║ ██╔╝╚██╗██╔╝</text>
+  <text font-family="'Courier New', Courier, monospace" font-size="14" fill="#3fb950" x="24" y="90">█████╔╝  ╚███╔╝ </text>
+  <text font-family="'Courier New', Courier, monospace" font-size="14" fill="#3fb950" x="24" y="109">██╔═██╗  ██╔██╗ </text>
+  <text font-family="'Courier New', Courier, monospace" font-size="14" fill="#3fb950" x="24" y="128">██║  ██╗██╔╝ ██╗</text>
+  <text font-family="'Courier New', Courier, monospace" font-size="14" fill="#3fb950" x="24" y="147">╚═╝  ╚═╝╚═╝  ╚═╝</text>
 
-  <text font-family="'Segoe UI', system-ui, -apple-system, sans-serif" font-size="22" font-weight="bold" fill="#e6edf3" x="220" y="65">kubectl, indexed.</text>
-  <text font-family="'Segoe UI', system-ui, -apple-system, sans-serif" font-size="13" fill="#7d8590" x="220" y="90">Index-based resource selection for kubectl.</text>
-  <text font-family="'Segoe UI', system-ui, -apple-system, sans-serif" font-size="13" fill="#7d8590" x="220" y="112">Run kx get pods, then use a number for every command after.</text>
+  <text font-family="'Segoe UI', system-ui, -apple-system, sans-serif" font-size="22" font-weight="bold" fill="#e6edf3" x="220" y="79">kubectl, indexed.</text>
+  <text font-family="'Segoe UI', system-ui, -apple-system, sans-serif" font-size="13" fill="#7d8590" x="220" y="104">Index-based resource selection for kubectl.</text>
+  <text font-family="'Segoe UI', system-ui, -apple-system, sans-serif" font-size="13" fill="#7d8590" x="220" y="126">Run kx get pods, then use a number for every command after.</text>
 </svg>
