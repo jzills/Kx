@@ -31,6 +31,18 @@ Type "kx get deployments -n kube-system"
 Enter
 Sleep 2s
 
+Type "kx describe 1"
+Enter
+Sleep 2.5s
+
 Type "kx tree 1 --index"
 Enter
 Sleep 3s
+
+Type "kx describe 3"
+Enter
+Sleep 2.5s
+
+Type "kx state"
+Enter
+Sleep 2s
