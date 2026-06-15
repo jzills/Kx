@@ -1,15 +1,85 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="800" height="174" viewBox="0 0 800 174">
-  <rect width="800" height="174" fill="#0d1117"/>
-  <rect y="172" width="800" height="2" fill="#21262d"/>
-
-  <text font-family="'Courier New', Courier, monospace" font-size="14" fill="#3fb950" x="24" y="52">██╗  ██╗██╗  ██╗</text>
-  <text font-family="'Courier New', Courier, monospace" font-size="14" fill="#3fb950" x="24" y="71">██║ ██╔╝╚██╗██╔╝</text>
-  <text font-family="'Courier New', Courier, monospace" font-size="14" fill="#3fb950" x="24" y="90">█████╔╝  ╚███╔╝ </text>
-  <text font-family="'Courier New', Courier, monospace" font-size="14" fill="#3fb950" x="24" y="109">██╔═██╗  ██╔██╗ </text>
-  <text font-family="'Courier New', Courier, monospace" font-size="14" fill="#3fb950" x="24" y="128">██║  ██╗██╔╝ ██╗</text>
-  <text font-family="'Courier New', Courier, monospace" font-size="14" fill="#3fb950" x="24" y="147">╚═╝  ╚═╝╚═╝  ╚═╝</text>
-
-  <text font-family="'Segoe UI', system-ui, -apple-system, sans-serif" font-size="22" font-weight="bold" fill="#e6edf3" x="220" y="79">kubectl, indexed.</text>
-  <text font-family="'Segoe UI', system-ui, -apple-system, sans-serif" font-size="13" fill="#7d8590" x="220" y="104">Index-based resource selection for kubectl.</text>
-  <text font-family="'Segoe UI', system-ui, -apple-system, sans-serif" font-size="13" fill="#7d8590" x="220" y="126">Run kx get pods, then use a number for every command after.</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="142" viewBox="0 0 800 142">
+  <rect width="800" height="142" fill="#0d1117"/>
+  <rect y="140" width="800" height="2" fill="#21262d"/>
+  <rect x="24" y="16" width="9" height="18" fill="#3fb950"/>
+  <rect x="33" y="16" width="9" height="18" fill="#3fb950"/>
+  <path fill="#3fb950" transform="translate(42,31) scale(0.01607143,-0.01607143)" d="M325 -190V414H0V504H414V-190ZM146 -190V235H0V325H235V-190Z"/>
+  <rect x="69" y="16" width="9" height="18" fill="#3fb950"/>
+  <rect x="78" y="16" width="9" height="18" fill="#3fb950"/>
+  <path fill="#3fb950" transform="translate(87,31) scale(0.01607143,-0.01607143)" d="M325 -190V414H0V504H414V-190ZM146 -190V235H0V325H235V-190Z"/>
+  <rect x="96" y="16" width="9" height="18" fill="#3fb950"/>
+  <rect x="105" y="16" width="9" height="18" fill="#3fb950"/>
+  <path fill="#3fb950" transform="translate(114,31) scale(0.01607143,-0.01607143)" d="M325 -190V414H0V504H414V-190ZM146 -190V235H0V325H235V-190Z"/>
+  <rect x="141" y="16" width="9" height="18" fill="#3fb950"/>
+  <rect x="150" y="16" width="9" height="18" fill="#3fb950"/>
+  <path fill="#3fb950" transform="translate(159,31) scale(0.01607143,-0.01607143)" d="M325 -190V414H0V504H414V-190ZM146 -190V235H0V325H235V-190Z"/>
+  <rect x="24" y="34" width="9" height="18" fill="#3fb950"/>
+  <rect x="33" y="34" width="9" height="18" fill="#3fb950"/>
+  <path fill="#3fb950" transform="translate(42,49) scale(0.01607143,-0.01607143)" d="M325 -190V930H414V-190ZM146 -190V930H235V-190Z"/>
+  <rect x="60" y="34" width="9" height="18" fill="#3fb950"/>
+  <rect x="69" y="34" width="9" height="18" fill="#3fb950"/>
+  <path fill="#3fb950" transform="translate(78,49) scale(0.01607143,-0.01607143)" d="M146 -190V504H560V414H235V-190ZM325 -190V325H560V235H414V-190Z"/>
+  <path fill="#3fb950" transform="translate(87,49) scale(0.01607143,-0.01607143)" d="M0 235V325H325V930H414V235ZM0 414V504H146V930H235V414Z"/>
+  <path fill="#3fb950" transform="translate(96,49) scale(0.01607143,-0.01607143)" d="M146 235V930H235V325H560V235ZM325 414V930H414V504H560V414Z"/>
+  <rect x="105" y="34" width="9" height="18" fill="#3fb950"/>
+  <rect x="114" y="34" width="9" height="18" fill="#3fb950"/>
+  <path fill="#3fb950" transform="translate(123,49) scale(0.01607143,-0.01607143)" d="M325 -190V414H0V504H414V-190ZM146 -190V235H0V325H235V-190Z"/>
+  <rect x="132" y="34" width="9" height="18" fill="#3fb950"/>
+  <rect x="141" y="34" width="9" height="18" fill="#3fb950"/>
+  <path fill="#3fb950" transform="translate(150,49) scale(0.01607143,-0.01607143)" d="M146 -190V504H560V414H235V-190ZM325 -190V325H560V235H414V-190Z"/>
+  <path fill="#3fb950" transform="translate(159,49) scale(0.01607143,-0.01607143)" d="M0 235V325H325V930H414V235ZM0 414V504H146V930H235V414Z"/>
+  <rect x="24" y="52" width="9" height="18" fill="#3fb950"/>
+  <rect x="33" y="52" width="9" height="18" fill="#3fb950"/>
+  <rect x="42" y="52" width="9" height="18" fill="#3fb950"/>
+  <rect x="51" y="52" width="9" height="18" fill="#3fb950"/>
+  <rect x="60" y="52" width="9" height="18" fill="#3fb950"/>
+  <path fill="#3fb950" transform="translate(69,67) scale(0.01607143,-0.01607143)" d="M146 -190V504H560V414H235V-190ZM325 -190V325H560V235H414V-190Z"/>
+  <path fill="#3fb950" transform="translate(78,67) scale(0.01607143,-0.01607143)" d="M0 235V325H325V930H414V235ZM0 414V504H146V930H235V414Z"/>
+  <path fill="#3fb950" transform="translate(105,67) scale(0.01607143,-0.01607143)" d="M146 235V930H235V325H560V235ZM325 414V930H414V504H560V414Z"/>
+  <rect x="114" y="52" width="9" height="18" fill="#3fb950"/>
+  <rect x="123" y="52" width="9" height="18" fill="#3fb950"/>
+  <rect x="132" y="52" width="9" height="18" fill="#3fb950"/>
+  <path fill="#3fb950" transform="translate(141,67) scale(0.01607143,-0.01607143)" d="M146 -190V504H560V414H235V-190ZM325 -190V325H560V235H414V-190Z"/>
+  <path fill="#3fb950" transform="translate(150,67) scale(0.01607143,-0.01607143)" d="M0 235V325H325V930H414V235ZM0 414V504H146V930H235V414Z"/>
+  <rect x="24" y="70" width="9" height="18" fill="#3fb950"/>
+  <rect x="33" y="70" width="9" height="18" fill="#3fb950"/>
+  <path fill="#3fb950" transform="translate(42,85) scale(0.01607143,-0.01607143)" d="M146 -190V504H560V414H235V-190ZM325 -190V325H560V235H414V-190Z"/>
+  <path fill="#3fb950" transform="translate(51,85) scale(0.01607143,-0.01607143)" d="M0 414V504H560V414ZM0 235V325H560V235Z"/>
+  <rect x="60" y="70" width="9" height="18" fill="#3fb950"/>
+  <rect x="69" y="70" width="9" height="18" fill="#3fb950"/>
+  <path fill="#3fb950" transform="translate(78,85) scale(0.01607143,-0.01607143)" d="M325 -190V414H0V504H414V-190ZM146 -190V235H0V325H235V-190Z"/>
+  <rect x="105" y="70" width="9" height="18" fill="#3fb950"/>
+  <rect x="114" y="70" width="9" height="18" fill="#3fb950"/>
+  <path fill="#3fb950" transform="translate(123,85) scale(0.01607143,-0.01607143)" d="M146 -190V504H560V414H235V-190ZM325 -190V325H560V235H414V-190Z"/>
+  <rect x="132" y="70" width="9" height="18" fill="#3fb950"/>
+  <rect x="141" y="70" width="9" height="18" fill="#3fb950"/>
+  <path fill="#3fb950" transform="translate(150,85) scale(0.01607143,-0.01607143)" d="M325 -190V414H0V504H414V-190ZM146 -190V235H0V325H235V-190Z"/>
+  <rect x="24" y="88" width="9" height="18" fill="#3fb950"/>
+  <rect x="33" y="88" width="9" height="18" fill="#3fb950"/>
+  <path fill="#3fb950" transform="translate(42,103) scale(0.01607143,-0.01607143)" d="M325 -190V930H414V-190ZM146 -190V930H235V-190Z"/>
+  <rect x="69" y="88" width="9" height="18" fill="#3fb950"/>
+  <rect x="78" y="88" width="9" height="18" fill="#3fb950"/>
+  <path fill="#3fb950" transform="translate(87,103) scale(0.01607143,-0.01607143)" d="M325 -190V414H0V504H414V-190ZM146 -190V235H0V325H235V-190Z"/>
+  <rect x="96" y="88" width="9" height="18" fill="#3fb950"/>
+  <rect x="105" y="88" width="9" height="18" fill="#3fb950"/>
+  <path fill="#3fb950" transform="translate(114,103) scale(0.01607143,-0.01607143)" d="M146 -190V504H560V414H235V-190ZM325 -190V325H560V235H414V-190Z"/>
+  <path fill="#3fb950" transform="translate(123,103) scale(0.01607143,-0.01607143)" d="M0 235V325H325V930H414V235ZM0 414V504H146V930H235V414Z"/>
+  <rect x="141" y="88" width="9" height="18" fill="#3fb950"/>
+  <rect x="150" y="88" width="9" height="18" fill="#3fb950"/>
+  <path fill="#3fb950" transform="translate(159,103) scale(0.01607143,-0.01607143)" d="M325 -190V414H0V504H414V-190ZM146 -190V235H0V325H235V-190Z"/>
+  <path fill="#3fb950" transform="translate(24,121) scale(0.01607143,-0.01607143)" d="M146 235V930H235V325H560V235ZM325 414V930H414V504H560V414Z"/>
+  <path fill="#3fb950" transform="translate(33,121) scale(0.01607143,-0.01607143)" d="M0 414V504H560V414ZM0 235V325H560V235Z"/>
+  <path fill="#3fb950" transform="translate(42,121) scale(0.01607143,-0.01607143)" d="M0 235V325H325V930H414V235ZM0 414V504H146V930H235V414Z"/>
+  <path fill="#3fb950" transform="translate(69,121) scale(0.01607143,-0.01607143)" d="M146 235V930H235V325H560V235ZM325 414V930H414V504H560V414Z"/>
+  <path fill="#3fb950" transform="translate(78,121) scale(0.01607143,-0.01607143)" d="M0 414V504H560V414ZM0 235V325H560V235Z"/>
+  <path fill="#3fb950" transform="translate(87,121) scale(0.01607143,-0.01607143)" d="M0 235V325H325V930H414V235ZM0 414V504H146V930H235V414Z"/>
+  <path fill="#3fb950" transform="translate(96,121) scale(0.01607143,-0.01607143)" d="M146 235V930H235V325H560V235ZM325 414V930H414V504H560V414Z"/>
+  <path fill="#3fb950" transform="translate(105,121) scale(0.01607143,-0.01607143)" d="M0 414V504H560V414ZM0 235V325H560V235Z"/>
+  <path fill="#3fb950" transform="translate(114,121) scale(0.01607143,-0.01607143)" d="M0 235V325H325V930H414V235ZM0 414V504H146V930H235V414Z"/>
+  <path fill="#3fb950" transform="translate(141,121) scale(0.01607143,-0.01607143)" d="M146 235V930H235V325H560V235ZM325 414V930H414V504H560V414Z"/>
+  <path fill="#3fb950" transform="translate(150,121) scale(0.01607143,-0.01607143)" d="M0 414V504H560V414ZM0 235V325H560V235Z"/>
+  <path fill="#3fb950" transform="translate(159,121) scale(0.01607143,-0.01607143)" d="M0 235V325H325V930H414V235ZM0 414V504H146V930H235V414Z"/>
+  <text font-family="'Segoe UI', system-ui, -apple-system, sans-serif" font-size="22" font-weight="bold" fill="#e6edf3" x="200" y="57.0">kubectl, indexed.</text>
+  <text font-family="'Segoe UI', system-ui, -apple-system, sans-serif" font-size="13" fill="#7d8590" x="200" y="81.0">Index-based resource selection for kubectl.</text>
+  <text font-family="'Segoe UI', system-ui, -apple-system, sans-serif" font-size="13" fill="#7d8590" x="200" y="99.0">Run kx get pods, then use a number for every command after.</text>
 </svg>
