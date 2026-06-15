@@ -5,9 +5,11 @@ Set Width 900
 Set Height 600
 Set FontFamily "Ubuntu Mono"
 
+Hide
 Type "VIRTUAL_ENV_DISABLE_PROMPT=1 source .venv/bin/activate && clear"
 Enter
 Sleep 500ms
+Show
 
 Type "kx get pods -n kube-system"
 Enter
