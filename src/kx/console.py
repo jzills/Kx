@@ -33,12 +33,16 @@ _STATUS_RED = {
     "InvalidImageName",
 }
 
-_console = Console()
+_console = Console(force_terminal=True)
 
 
 def configure(plain: bool) -> None:
     global _console
-    _console = Console(no_color=True, highlight=False) if plain else Console()
+    _console = (
+        Console(no_color=True, highlight=False)
+        if plain
+        else Console(force_terminal=True)
+    )
 
 
 def print_success(msg: str) -> None:
