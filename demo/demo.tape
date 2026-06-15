@@ -1,11 +1,11 @@
 Output demo/demo.gif
 
-Set FontSize 13
+Set FontSize 16
 Set Width 900
 Set Height 600
-Set FontFamily "JetBrains Mono"
+Set FontFamily "Ubuntu Mono"
 
-Type "source .venv/bin/activate && clear"
+Type "VIRTUAL_ENV_DISABLE_PROMPT=1 source .venv/bin/activate && clear"
 Enter
 Sleep 500ms
 
