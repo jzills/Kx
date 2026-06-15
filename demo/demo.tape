@@ -33,7 +33,7 @@ Type "kx get deployments -n kube-system"
 Enter
 Sleep 2s
 
-Type "kx describe 1"
+Type "kx describe 1 | head -10"
 Enter
 Sleep 2.5s
 
@@ -41,7 +41,7 @@ Type "kx tree 1 --index"
 Enter
 Sleep 3s
 
-Type "kx describe 3"
+Type "kx describe 3 | head -10"
 Enter
 Sleep 2.5s
 
