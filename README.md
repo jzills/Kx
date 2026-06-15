@@ -1,19 +1,23 @@
 <div align="center">
+  <img src="assets/banner.svg" alt="kx — kubectl, indexed." width="800"/>
+</div>
 
-```
-██╗  ██╗██╗  ██╗
-██║ ██╔╝╚██╗██╔╝
-█████╔╝  ╚███╔╝ 
-██╔═██╗  ██╔██╗ 
-██║  ██╗██╔╝ ██╗
-╚═╝  ╚═╝╚═╝  ╚═╝
-```
+<br>
 
-**kubectl, indexed.**
+<div align="center">
+
+[![PyPI version](https://img.shields.io/pypi/v/kx-cli?style=flat-square&color=3fb950&labelColor=21262d)](https://pypi.org/project/kx-cli/)
+[![Python](https://img.shields.io/pypi/pyversions/kx-cli?style=flat-square&color=3fb950&labelColor=21262d)](https://pypi.org/project/kx-cli/)
+[![License](https://img.shields.io/github/license/jzills/kx?style=flat-square&color=3fb950&labelColor=21262d)](LICENSE)
+[![CI](https://img.shields.io/github/actions/workflow/status/jzills/kx/pr.yml?style=flat-square&color=3fb950&labelColor=21262d&label=CI)](https://github.com/jzills/kx/actions/workflows/pr.yml)
 
 </div>
 
 `kx` is a kubectl wrapper that adds index-based resource selection. Run `kx get <resource>` once, then reference any result by number instead of typing full resource names.
+
+<div align="center">
+  <img src="demo/demo.gif" alt="kx demo" width="800"/>
+</div>
 
 ## Install
 
@@ -48,6 +52,7 @@ All subsequent commands reference resources by their `X` index from the last `kx
 | `kx get <resource> [--match\|-m <str>] [kubectl flags...]` | List resources with index numbers; optionally filter by name substring |
 | `kx describe <index> [kubectl flags...]` | Show `kubectl describe` output for an indexed resource |
 | `kx events <index>` | Show Kubernetes events for the resource |
+| `kx labels <index>` | Show labels for an indexed resource |
 | `kx logs <index> [kubectl flags...]` | Stream logs; aggregates across pods for Deployments, StatefulSets, DaemonSets, and Services |
 | `kx yaml <index>` | Print the raw YAML manifest |
 | `kx exec <index> [cmd] [kubectl flags...]` | Open an interactive shell in a pod (bash → sh fallback); pass a custom command with `cmd` |
