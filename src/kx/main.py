@@ -282,11 +282,11 @@ def port_forward(ctx: typer.Context, index: int, port: str):
 
 
 @app.command(cls=StyledCommand)
-def namespace(ns: str = typer.Argument(..., help="Namespace to switch to.")):
-    """Switch to a namespace and list all its resources."""
+def namespace(index: int):
+    """Switch to an indexed namespace (run kx get namespaces first)."""
     command = NamespaceCommand(state=_state, kubectl=_kubectl)
     try:
-        console.render_state(command.execute(ns))
+        console.print_success(f"Switched to '{command.execute(index)}'")
     except RuntimeError as e:
         console.print_error(str(e))
         raise typer.Exit(1)
