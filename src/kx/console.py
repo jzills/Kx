@@ -227,7 +227,7 @@ def print_command_help(ctx) -> None:
         for arg in args:
             label = "required" if arg.required else "optional"
             _console.print(
-                f"  [{COLOR_BODY}]{arg.human_readable_name:<16}[/{COLOR_BODY}]  [{COLOR_DIM}]{label}[/{COLOR_DIM}]"
+                f"  [{COLOR_BODY}]{arg.human_readable_name:<20}[/{COLOR_BODY}]  [{COLOR_DIM}]{label}[/{COLOR_DIM}]"
             )
 
     _console.print()
