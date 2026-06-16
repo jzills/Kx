@@ -15,6 +15,7 @@ from kx.commands.exec import ExecCommand
 from kx.commands.get import GetCommand
 from kx.commands.logs import LogsCommand
 from kx.commands.port_forward import PortForwardCommand
+from kx.commands.namespace import NamespaceCommand
 from kx.commands.state import StateCommand
 from kx.commands.tree import TreeCommand
 from kx.commands.yaml import YamlCommand
@@ -65,6 +66,7 @@ def callback(
         commands = [
             (name, cmd.get_short_help_str(limit=55))
             for name, cmd in ctx.command.commands.items()
+            if not cmd.hidden
         ]
         console.print_help(commands)
         raise typer.Exit()
@@ -276,6 +278,31 @@ def port_forward(ctx: typer.Context, index: int, port: str):
     try:
         command.execute(index, port, ctx.args)
     except ValueError as e:
+        console.print_error(str(e))
+        raise typer.Exit(1)
+
+
+@app.command(cls=StyledCommand)
+def namespace(index: int):
+    """Switch to an indexed namespace (run kx get namespaces first)."""
+    command = NamespaceCommand(state=_state, kubectl=_kubectl)
+    try:
+        console.print_success(f"Switched to '{command.execute(index)}'")
+    except RuntimeError as e:
+        console.print_error(str(e))
+        raise typer.Exit(1)
+
+
+namespace._aliases = ["ns"]
+
+
+@app.command(name="ns", cls=StyledCommand, hidden=True)
+def namespace_alias(index: int):
+    """Alias for namespace."""
+    command = NamespaceCommand(state=_state, kubectl=_kubectl)
+    try:
+        console.print_success(f"Switched to '{command.execute(index)}'")
+    except RuntimeError as e:
         console.print_error(str(e))
         raise typer.Exit(1)
 

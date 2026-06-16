@@ -227,7 +227,7 @@ def print_command_help(ctx) -> None:
         for arg in args:
             label = "required" if arg.required else "optional"
             _console.print(
-                f"  [{COLOR_BODY}]{arg.human_readable_name:<16}[/{COLOR_BODY}]  [{COLOR_DIM}]{label}[/{COLOR_DIM}]"
+                f"  [{COLOR_BODY}]{arg.human_readable_name:<20}[/{COLOR_BODY}]  [{COLOR_DIM}]{label}[/{COLOR_DIM}]"
             )
 
     _console.print()
@@ -240,6 +240,13 @@ def print_command_help(ctx) -> None:
     _console.print(
         f"  [{COLOR_BODY}]{'--help':<20}[/{COLOR_BODY}]  [{COLOR_DIM}]Show this message and exit.[/{COLOR_DIM}]"
     )
+
+    aliases = getattr(ctx.command.callback, "_aliases", [])
+    if aliases:
+        _console.print()
+        _console.print(f"[bold {COLOR_HEADER}]Aliases[/bold {COLOR_HEADER}]")
+        for alias in aliases:
+            _console.print(f"  [{COLOR_BODY}]{alias}[/{COLOR_BODY}]")
 
 
 _KX_ART = [
