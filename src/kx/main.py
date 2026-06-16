@@ -292,6 +292,20 @@ def namespace(index: int):
         raise typer.Exit(1)
 
 
+namespace._aliases = ["ns"]
+
+
+@app.command(name="ns", cls=StyledCommand, hidden=True)
+def namespace_alias(index: int):
+    """Alias for namespace."""
+    command = NamespaceCommand(state=_state, kubectl=_kubectl)
+    try:
+        console.print_success(f"Switched to '{command.execute(index)}'")
+    except RuntimeError as e:
+        console.print_error(str(e))
+        raise typer.Exit(1)
+
+
 @app.command(cls=StyledCommand)
 def state():
     """Show the current state file."""

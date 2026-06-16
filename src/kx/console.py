@@ -241,6 +241,13 @@ def print_command_help(ctx) -> None:
         f"  [{COLOR_BODY}]{'--help':<20}[/{COLOR_BODY}]  [{COLOR_DIM}]Show this message and exit.[/{COLOR_DIM}]"
     )
 
+    aliases = getattr(ctx.command.callback, "_aliases", [])
+    if aliases:
+        _console.print()
+        _console.print(f"[bold {COLOR_HEADER}]Aliases[/bold {COLOR_HEADER}]")
+        for alias in aliases:
+            _console.print(f"  [{COLOR_BODY}]{alias}[/{COLOR_BODY}]")
+
 
 _KX_ART = [
     "██╗  ██╗██╗  ██╗",
