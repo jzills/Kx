@@ -66,6 +66,7 @@ def callback(
         commands = [
             (name, cmd.get_short_help_str(limit=55))
             for name, cmd in ctx.command.commands.items()
+            if not cmd.hidden
         ]
         console.print_help(commands)
         raise typer.Exit()
