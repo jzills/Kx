@@ -156,51 +156,53 @@ def logs(ctx: typer.Context, index: int):
 
 @app.command(cls=StyledCommand)
 def labels(
-    index: int,
+    indexes: list[int],
     selector: bool = typer.Option(
         False, "--selector", "-s", help="Output as a copy-pastable label selector"
     ),
 ):
-    """Show labels for an indexed resource."""
+    """Show labels for one or more indexed resources."""
     command = LabelsCommand(state=_state, kubectl=_kubectl)
-    try:
-        label_map = command.execute(index)
-    except typer.Exit:
-        raise
-    except RuntimeError as e:
-        console.print_error(str(e))
-        raise typer.Exit(1)
-    name, ns, kind = _state.fields(index)
-    count = len(label_map)
-    extra = f"{count} {'item' if count == 1 else 'items'}"
-    console.print_banner(kind, name, namespace=ns, extra=extra)
-    if selector:
-        console.print_raw(
-            ",".join(f"{key}={value}" for key, value in label_map.items())
-        )
-    else:
-        console.render_labels(label_map)
+    for index in indexes:
+        try:
+            label_map = command.execute(index)
+        except typer.Exit:
+            raise
+        except RuntimeError as e:
+            console.print_error(str(e))
+            raise typer.Exit(1)
+        name, ns, kind = _state.fields(index)
+        count = len(label_map)
+        extra = f"{count} {'item' if count == 1 else 'items'}"
+        console.print_banner(kind, name, namespace=ns, extra=extra)
+        if selector:
+            console.print_raw(
+                ",".join(f"{key}={value}" for key, value in label_map.items())
+            )
+        else:
+            console.render_labels(label_map)
 
 
 @app.command(cls=StyledCommand)
 def yaml(
-    index: int,
+    indexes: list[int],
     show: Optional[str] = typer.Option(
         None,
         "--show",
         help="Comma-separated top-level YAML fields to display (e.g. metadata,spec)",
     ),
 ):
-    """Print the raw YAML manifest for an indexed resource."""
-    name, ns, kind = _state.fields(index)
-    console.print_banner(kind, name, namespace=ns)
+    """Print the raw YAML manifest for one or more indexed resources."""
     command = YamlCommand(state=_state, kubectl=_kubectl)
-    try:
-        fields = [field.strip() for field in show.split(",")] if show else None
-        console.print_raw(command.execute(index, fields))
-    except RuntimeError as e:
-        console.print_error(str(e))
-        raise typer.Exit(1)
+    fields = [field.strip() for field in show.split(",")] if show else None
+    for index in indexes:
+        name, ns, kind = _state.fields(index)
+        console.print_banner(kind, name, namespace=ns)
+        try:
+            console.print_raw(command.execute(index, fields))
+        except RuntimeError as e:
+            console.print_error(str(e))
+            raise typer.Exit(1)
 
 
 @app.command(cls=StyledCommand)
