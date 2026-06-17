@@ -10,6 +10,8 @@ jobs:
     name: Build and Publish
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: write
     outputs:
       version: ${{ steps.version.outputs.value }}
     steps:
@@ -35,6 +37,14 @@ jobs:
       - name: Set version in pyproject.toml
         run: |
           sed -i "s/^version = .*/version = \"${{ steps.version.outputs.value }}\"/" pyproject.toml
+
+      - name: Commit version bump
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add pyproject.toml
+          git commit -m "chore: bump version to ${{ steps.version.outputs.value }}"
+          git push origin "${{ github.ref_name }}"
 
       - name: Build distribution
         run: python -m build
