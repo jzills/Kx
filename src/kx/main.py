@@ -179,13 +179,21 @@ def labels(
 
 
 @app.command(cls=StyledCommand)
-def yaml(index: int):
+def yaml(
+    index: int,
+    show: Optional[str] = typer.Option(
+        None,
+        "--show",
+        help="Comma-separated top-level YAML fields to display (e.g. metadata,spec)",
+    ),
+):
     """Print the raw YAML manifest for an indexed resource."""
     name, ns, kind = _state.fields(index)
     console.print_banner(kind, name, namespace=ns)
     command = YamlCommand(state=_state, kubectl=_kubectl)
     try:
-        console.print_raw(command.execute(index))
+        fields = [field.strip() for field in show.split(",")] if show else None
+        console.print_raw(command.execute(index, fields))
     except RuntimeError as e:
         console.print_error(str(e))
         raise typer.Exit(1)
