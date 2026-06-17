@@ -10,7 +10,10 @@ _SAMPLE_YAML = yaml.dump(
         "kind": "Pod",
         "metadata": {"name": "nginx", "namespace": "default"},
         "spec": {"containers": [{"name": "nginx", "image": "nginx:latest"}]},
-        "status": {"phase": "Running"},
+        "status": {
+            "phase": "Running",
+            "containerStatuses": [{"name": "nginx", "ready": True, "restartCount": 0}],
+        },
     }
 )
 
@@ -60,6 +63,13 @@ class TestYamlCommand:
         cmd, state, _ = _make_command(name="my-pod", namespace="kube-system")
         cmd.execute(3)
         state.fields.assert_called_once_with(3)
+
+    def test_show_nested_key(self):
+        cmd, _, _ = _make_command()
+        result = cmd.execute(1, show=["containerStatuses"])
+        parsed = yaml.safe_load(result)
+        assert "containerStatuses" in parsed
+        assert parsed["containerStatuses"][0]["name"] == "nginx"
 
     def test_kubectl_called_with_correct_args(self):
         cmd, _, kubectl = _make_command()

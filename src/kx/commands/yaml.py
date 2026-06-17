@@ -4,6 +4,20 @@ from kx.kubectl import KubectlServiceProtocol
 from kx.state import StateServiceProtocol
 
 
+def _find_keys(data: dict | list, keys: set[str]) -> dict:
+    result = {}
+    if isinstance(data, dict):
+        for k, v in data.items():
+            if k in keys:
+                result[k] = v
+            else:
+                result.update(_find_keys(v, keys))
+    elif isinstance(data, list):
+        for item in data:
+            result.update(_find_keys(item, keys))
+    return result
+
+
 class YamlCommand:
     def __init__(self, state: StateServiceProtocol, kubectl: KubectlServiceProtocol):
         self.state = state
@@ -15,5 +29,4 @@ class YamlCommand:
         if not show:
             return raw
         data = yaml.safe_load(raw)
-        filtered = {key: data[key] for key in show if key in data}
-        return yaml.dump(filtered, default_flow_style=False)
+        return yaml.dump(_find_keys(data, set(show)), default_flow_style=False)
