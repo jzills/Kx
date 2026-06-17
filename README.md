@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="assets/banner.svg" alt="kx — kubectl, indexed." width="800"/>
+  <img src="https://raw.githubusercontent.com/jzills/kx/main/assets/banner.svg" alt="kx — kubectl, indexed." width="800"/>
 </div>
 
 <br>
@@ -16,7 +16,7 @@
 `kx` is a kubectl wrapper that adds index-based resource selection. Run `kx get <resource>` once, then reference any result by number instead of typing full resource names.
 
 <div align="center">
-  <img src="demo/demo.gif" alt="kx demo" width="800"/>
+  <img src="https://raw.githubusercontent.com/jzills/kx/main/demo/demo.gif" alt="kx demo" width="800"/>
 </div>
 
 ## Install
