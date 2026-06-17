@@ -16,6 +16,8 @@ from kx.commands.get import GetCommand
 from kx.commands.logs import LogsCommand
 from kx.commands.port_forward import PortForwardCommand
 from kx.commands.namespace import NamespaceCommand
+from kx.commands.rollout import RolloutCommand
+from kx.commands.scale import ScaleCommand
 from kx.commands.state import StateCommand
 from kx.commands.tree import TreeCommand
 from kx.commands.yaml import YamlCommand
@@ -111,27 +113,29 @@ def get(
     cls=StyledCommand,
     context_settings={"allow_extra_args": True, "ignore_unknown_options": True},
 )
-def describe(ctx: typer.Context, index: int):
-    """Show full kubectl describe output for an indexed resource."""
-    name, ns, kind = _state.fields(index)
-    console.print_banner(kind, name, namespace=ns)
+def describe(ctx: typer.Context, indexes: list[int]):
+    """Show full kubectl describe output for one or more indexed resources."""
     command = DescribeCommand(state=_state, kubectl=_kubectl)
-    command.execute(index, ctx.args)
+    for index in indexes:
+        name, ns, kind = _state.fields(index)
+        console.print_banner(kind, name, namespace=ns)
+        command.execute(index, ctx.args)
 
 
 @app.command(cls=StyledCommand)
-def events(index: int):
-    """Show Kubernetes events for an indexed resource."""
-    name, ns, kind = _state.fields(index)
+def events(indexes: list[int]):
+    """Show Kubernetes events for one or more indexed resources."""
     command = EventsCommand(state=_state, events=_events)
-    result = command.execute(index)
-    if result.strip() == "No events found":
-        count = 0
-    else:
-        count = len([line for line in result.splitlines() if line.strip()])
-    extra = f"{count} {'item' if count == 1 else 'items'}" if count else ""
-    console.print_banner(kind, name, namespace=ns, extra=extra)
-    console.render_events_table(result)
+    for index in indexes:
+        name, ns, kind = _state.fields(index)
+        result = command.execute(index)
+        if result.strip() == "No events found":
+            count = 0
+        else:
+            count = len([line for line in result.splitlines() if line.strip()])
+        extra = f"{count} {'item' if count == 1 else 'items'}" if count else ""
+        console.print_banner(kind, name, namespace=ns, extra=extra)
+        console.render_events_table(result)
 
 
 @app.command(
@@ -201,22 +205,23 @@ def yaml(
 
 @app.command(cls=StyledCommand)
 def delete(
-    index: int,
+    indexes: list[int],
     yes: bool = typer.Option(False, "--yes", "-y", help="Skip confirmation prompt"),
 ):
-    """Delete an indexed resource (prompts for confirmation unless --yes)."""
+    """Delete one or more indexed resources (prompts for confirmation unless --yes)."""
     command = DeleteCommand(
         state=_state,
         kubectl=_kubectl,
         confirm=lambda msg: typer.confirm(msg, abort=True),
     )
-    try:
-        console.print_success(command.execute(index, yes))
-    except typer.Exit:
-        raise
-    except RuntimeError as e:
-        console.print_error(str(e))
-        raise typer.Exit(1)
+    for index in indexes:
+        try:
+            console.print_success(command.execute(index, yes))
+        except typer.Exit:
+            raise
+        except RuntimeError as e:
+            console.print_error(str(e))
+            raise typer.Exit(1)
 
 
 @app.command(
@@ -271,6 +276,37 @@ def tree(
         build_indexed_tree=build_indexed_tree,
     )
     console.print_rich(command.execute(index, indexed))
+
+
+@app.command(cls=StyledCommand)
+def rollout(
+    index: int,
+    restart: bool = typer.Option(
+        False, "--restart", "-r", help="Restart the rollout instead of showing status"
+    ),
+):
+    """Show rollout status, or restart an indexed Deployment, StatefulSet, or DaemonSet."""
+    name, ns, kind = _state.fields(index)
+    console.print_banner(kind, name, namespace=ns)
+    command = RolloutCommand(kubectl=_kubectl, state=_state)
+    try:
+        result = command.execute(index, restart)
+        if result:
+            console.print_success(result)
+    except ValueError as e:
+        console.print_error(str(e))
+        raise typer.Exit(1)
+
+
+@app.command(cls=StyledCommand)
+def scale(index: int, replicas: int):
+    """Scale an indexed Deployment, StatefulSet, or ReplicaSet to a given replica count."""
+    command = ScaleCommand(kubectl=_kubectl, state=_state)
+    try:
+        console.print_success(command.execute(index, replicas))
+    except ValueError as e:
+        console.print_error(str(e))
+        raise typer.Exit(1)
 
 
 @app.command(
