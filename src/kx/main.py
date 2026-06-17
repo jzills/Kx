@@ -16,7 +16,7 @@ from kx.commands.get import GetCommand
 from kx.commands.logs import LogsCommand
 from kx.commands.port_forward import PortForwardCommand
 from kx.commands.namespace import NamespaceCommand
-from kx.commands.rollout import RolloutCommand
+from kx.commands.rollout import RolloutAction, RolloutCommand
 from kx.commands.scale import ScaleCommand
 from kx.commands.state import StateCommand
 from kx.commands.tree import TreeCommand
@@ -279,18 +279,13 @@ def tree(
 
 
 @app.command(cls=StyledCommand)
-def rollout(
-    index: int,
-    restart: bool = typer.Option(
-        False, "--restart", "-r", help="Restart the rollout instead of showing status"
-    ),
-):
-    """Show rollout status, or restart an indexed Deployment, StatefulSet, or DaemonSet."""
+def rollout(action: RolloutAction, index: int):
+    """Show rollout status or restart an indexed Deployment, StatefulSet, or DaemonSet."""
     name, ns, kind = _state.fields(index)
     console.print_banner(kind, name, namespace=ns)
     command = RolloutCommand(kubectl=_kubectl, state=_state)
     try:
-        result = command.execute(index, restart)
+        result = command.execute(index, restart=(action == RolloutAction.restart))
         if result:
             console.print_success(result)
     except ValueError as e:

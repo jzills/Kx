@@ -1,8 +1,15 @@
+from enum import Enum
+
 from kx.kinds import Kind
 from kx.kubectl import KubectlServiceProtocol
 from kx.state import StateServiceProtocol
 
 _SUPPORTED_KINDS = {Kind.Deployment, Kind.StatefulSet, Kind.DaemonSet}
+
+
+class RolloutAction(str, Enum):
+    status = "status"
+    restart = "restart"
 
 
 class RolloutCommand:
