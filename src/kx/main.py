@@ -163,7 +163,7 @@ def labels(
 ):
     """Show labels for one or more indexed resources."""
     command = LabelsCommand(state=_state, kubectl=_kubectl)
-    for index in indexes:
+    for position, index in enumerate(indexes):
         try:
             label_map = command.execute(index)
         except typer.Exit:
@@ -174,6 +174,8 @@ def labels(
         name, ns, kind = _state.fields(index)
         count = len(label_map)
         extra = f"{count} {'item' if count == 1 else 'items'}"
+        if position > 0:
+            console.print_raw("")
         console.print_banner(kind, name, namespace=ns, extra=extra)
         if selector:
             console.print_raw(
