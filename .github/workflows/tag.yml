@@ -37,12 +37,18 @@ jobs:
     runs-on: ubuntu-latest
     needs: tag
     permissions:
+      contents: write
       pull-requests: write
     steps:
       - name: Open PR to merge release branch back into develop
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          AHEAD=$(gh api repos/$GITHUB_REPOSITORY/compare/develop...${{ github.event.pull_request.head.ref }} --jq '.ahead_by')
+          if [ "$AHEAD" -eq 0 ]; then
+            echo "No commits to merge back — branches are already in sync."
+            exit 0
+          fi
           PR_URL=$(gh pr create \
             --repo "$GITHUB_REPOSITORY" \
             --title "chore: merge ${{ github.event.pull_request.head.ref }} back into develop" \
