@@ -2,6 +2,7 @@ import re
 import json
 
 from rich.console import Console
+from rich.rule import Rule
 from rich.table import Table
 
 from kx.kinds import plural_display
@@ -63,6 +64,7 @@ def print_banner(kind: str, name: str, namespace: str = "", extra: str = "") -> 
     if extra:
         parts.append(extra)
     _console.print(f"[{COLOR_DIM}]{' · '.join(parts)}[/{COLOR_DIM}]")
+    _console.print(Rule(style=COLOR_DIM))
 
 
 def print_raw(text: str) -> None:
