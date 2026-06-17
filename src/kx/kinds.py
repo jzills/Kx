@@ -88,5 +88,5 @@ def normalize_kind(resource_type: str) -> Kind | str:
 def plural_display(resource_type: str) -> str:
     kind = _KIND_MAP.get(resource_type.lower())
     if kind is not None:
-        return _PLURAL_DISPLAY.get(kind, kind.value + "s").upper()
-    return resource_type.upper()
+        return _PLURAL_DISPLAY.get(kind, kind.value + "s")
+    return resource_type

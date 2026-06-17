@@ -4,9 +4,14 @@ version = "0.0.0"
 description = "kubectl wrapper with index-based resource selection"
 readme = "README.md"
 requires-python = ">=3.11"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
 dependencies = [
-    "typer==0.25.1",
-    "click",
+    "typer==0.26.7",
     "kubernetes",
     "rich",
 ]

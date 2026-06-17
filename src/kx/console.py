@@ -33,12 +33,16 @@ _STATUS_RED = {
     "InvalidImageName",
 }
 
-_console = Console()
+_console = Console(force_terminal=True)
 
 
 def configure(plain: bool) -> None:
     global _console
-    _console = Console(no_color=True, highlight=False) if plain else Console()
+    _console = (
+        Console(no_color=True, highlight=False)
+        if plain
+        else Console(force_terminal=True)
+    )
 
 
 def print_success(msg: str) -> None:
@@ -52,9 +56,13 @@ def print_error(msg: str) -> None:
     )
 
 
-def print_banner(kind: str, name: str, extra: str = "") -> None:
-    suffix = f" {extra}" if extra else ""
-    _console.print(f"[{COLOR_DIM}]→ {kind}/{name}{suffix}[/{COLOR_DIM}]")
+def print_banner(kind: str, name: str, namespace: str = "", extra: str = "") -> None:
+    parts = [f"{kind}/{name}"]
+    if namespace:
+        parts.append(namespace)
+    if extra:
+        parts.append(extra)
+    _console.print(f"[{COLOR_DIM}]{' · '.join(parts)}[/{COLOR_DIM}]")
 
 
 def print_raw(text: str) -> None:
@@ -189,7 +197,7 @@ def render_events_table(text: str) -> None:
 
 
 def print_command_help(ctx) -> None:
-    import click as _click
+    from typer.core import TyperArgument, TyperOption
 
     cmd = ctx.command
     _console.print()
@@ -200,12 +208,14 @@ def print_command_help(ctx) -> None:
     _console.rule(style=COLOR_DIM)
     _console.print()
 
-    args = [p for p in cmd.params if isinstance(p, _click.Argument)]
+    args = [param for param in cmd.params if isinstance(param, TyperArgument)]
     opts = [
-        p for p in cmd.params if isinstance(p, _click.Option) and "--help" not in p.opts
+        param
+        for param in cmd.params
+        if isinstance(param, TyperOption) and "--help" not in param.opts
     ]
 
-    args_str = " ".join(p.human_readable_name for p in args)
+    args_str = " ".join(arg.human_readable_name for arg in args)
     usage = f"{ctx.command_path} [OPTIONS]"
     if args_str:
         usage += f" {args_str}"
@@ -217,7 +227,7 @@ def print_command_help(ctx) -> None:
         for arg in args:
             label = "required" if arg.required else "optional"
             _console.print(
-                f"  [{COLOR_BODY}]{arg.human_readable_name:<16}[/{COLOR_BODY}]  [{COLOR_DIM}]{label}[/{COLOR_DIM}]"
+                f"  [{COLOR_BODY}]{arg.human_readable_name:<20}[/{COLOR_BODY}]  [{COLOR_DIM}]{label}[/{COLOR_DIM}]"
             )
 
     _console.print()
@@ -230,6 +240,13 @@ def print_command_help(ctx) -> None:
     _console.print(
         f"  [{COLOR_BODY}]{'--help':<20}[/{COLOR_BODY}]  [{COLOR_DIM}]Show this message and exit.[/{COLOR_DIM}]"
     )
+
+    aliases = getattr(ctx.command.callback, "_aliases", [])
+    if aliases:
+        _console.print()
+        _console.print(f"[bold {COLOR_HEADER}]Aliases[/bold {COLOR_HEADER}]")
+        for alias in aliases:
+            _console.print(f"  [{COLOR_BODY}]{alias}[/{COLOR_BODY}]")
 
 
 _KX_ART = [
@@ -270,12 +287,45 @@ def print_help(commands: list[tuple[str, str]]) -> None:
     )
 
 
+def render_labels(labels: dict[str, str]) -> None:
+    if not labels:
+        _console.print(f"[{COLOR_DIM}]No labels.[/{COLOR_DIM}]")
+        return
+    table = Table(
+        show_header=True,
+        header_style=f"bold {COLOR_HEADER}",
+        box=None,
+        padding=(0, 2),
+    )
+    table.add_column("LABEL")
+    table.add_column("VALUE", style=COLOR_DIM)
+    for key, value in labels.items():
+        table.add_row(key, value)
+    _console.print(table)
+
+
 def render_state(json_str: str) -> None:
     data = json.loads(json_str)
     namespace = data.get("namespace", "default")
     resources = data.get("resources", {})
-    _console.print(f"[{COLOR_DIM}]namespace:[/{COLOR_DIM}] {namespace}")
+    count = len(resources)
+    label = "item" if count == 1 else "items"
+    unique_kinds = set(resources.values())
+    kind_label = (
+        plural_display(next(iter(unique_kinds))) if len(unique_kinds) == 1 else "Mixed"
+    )
+    _console.print(
+        f"[{COLOR_DIM}]{kind_label} · {namespace} · {count} {label}[/{COLOR_DIM}]"
+    )
+    table = Table(
+        show_header=True,
+        header_style=f"bold {COLOR_HEADER}",
+        box=None,
+        padding=(0, 2),
+    )
+    table.add_column("X", justify="right")
+    table.add_column("KIND")
+    table.add_column("NAME")
     for index, (name, kind) in enumerate(resources.items(), start=1):
-        _console.print(
-            f"  [{COLOR_DIM}]{index}[/{COLOR_DIM}]  [{COLOR_HEADER}]{kind}[/{COLOR_HEADER}] {name}"
-        )
+        table.add_row(str(index), str(kind), name)
+    _console.print(table)

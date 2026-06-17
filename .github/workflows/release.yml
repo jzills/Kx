@@ -43,13 +43,14 @@ jobs:
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
-        run: twine upload dist/*
+        run: twine upload --skip-existing dist/*
 
   merge:
     name: Open PR to Main
     runs-on: ubuntu-latest
     needs: build-and-publish
     permissions:
+      contents: write
       pull-requests: write
     steps:
       - name: Create PR and enable auto-merge
