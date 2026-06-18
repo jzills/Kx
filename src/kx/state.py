@@ -13,24 +13,58 @@ class State:
     namespace: str = "default"
 
 
+@dataclass
+class StateHistory:
+    states: list[State]
+    cursor: int = 0
+
+
 class StateServiceProtocol(Protocol):
     def save(self, state: State) -> None: ...
     def load(self) -> State: ...
     def fields(self, index: int) -> tuple[str, str, str]: ...
+    def navigate(self, delta: int) -> State: ...
 
 
 _STATE_FILE = Path.home() / ".kx_state.json"
+_MAX_HISTORY = 10
 
 
 class StateService:
-    def save(self, state: State) -> None:
-        _STATE_FILE.write_text(json.dumps(asdict(state)))
-
-    def load(self) -> State:
+    def _load_history(self) -> StateHistory:
         if not _STATE_FILE.exists():
             raise RuntimeError("No state found. Run `kx get <resource>` first.")
         data = json.loads(_STATE_FILE.read_text())
-        return State(**data)
+        if "states" not in data:
+            return StateHistory(states=[State(**data)], cursor=0)
+        states = [State(**state_data) for state_data in data["states"]]
+        return StateHistory(states=states, cursor=data["cursor"])
+
+    def _save_history(self, history: StateHistory) -> None:
+        data = {
+            "states": [asdict(state) for state in history.states],
+            "cursor": history.cursor,
+        }
+        _STATE_FILE.write_text(json.dumps(data))
+
+    def save(self, state: State) -> None:
+        try:
+            history = self._load_history()
+            new_states = history.states[: history.cursor + 1] + [state]
+        except RuntimeError:
+            new_states = [state]
+        new_states = new_states[-_MAX_HISTORY:]
+        self._save_history(StateHistory(states=new_states, cursor=len(new_states) - 1))
+
+    def load(self) -> State:
+        history = self._load_history()
+        return history.states[history.cursor]
+
+    def navigate(self, delta: int) -> State:
+        history = self._load_history()
+        history.cursor = max(0, min(len(history.states) - 1, history.cursor + delta))
+        self._save_history(history)
+        return history.states[history.cursor]
 
     def fields(self, index: int) -> tuple[str, str, str]:
         state = self.load()

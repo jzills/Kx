@@ -6,10 +6,12 @@ import typer.rich_utils
 from typer.core import TyperCommand
 
 from kx import console
+from kx.commands.back import BackCommand
 from kx.commands.delete import DeleteCommand
 from kx.commands.labels import LabelsCommand
 from kx.commands.describe import DescribeCommand
 from kx.commands.edit import EditCommand
+from kx.commands.forward import ForwardCommand
 from kx.commands.events import EventsCommand
 from kx.commands.exec import ExecCommand
 from kx.commands.get import GetCommand
@@ -289,9 +291,12 @@ def rollout(action: RolloutAction, index: int):
     console.print_banner(kind, name, namespace=ns)
     command = RolloutCommand(kubectl=_kubectl, state=_state)
     try:
-        result = command.execute(index, restart=(action == RolloutAction.restart))
+        result = command.execute(index, action)
         if result:
-            console.print_success(result)
+            if action == RolloutAction.history:
+                console.print_raw(result)
+            else:
+                console.print_success(result)
     except ValueError as e:
         console.print_error(str(e))
         raise typer.Exit(1)
@@ -356,6 +361,26 @@ def state():
     command = StateCommand(state=_state)
     try:
         console.render_state(command.execute())
+    except RuntimeError as e:
+        console.print_error(str(e))
+        raise typer.Exit(1)
+
+
+@app.command(cls=StyledCommand)
+def back():
+    """Navigate to the previous kx get result."""
+    try:
+        console.render_state(BackCommand(state=_state).execute())
+    except RuntimeError as e:
+        console.print_error(str(e))
+        raise typer.Exit(1)
+
+
+@app.command(cls=StyledCommand)
+def forward():
+    """Navigate to the next kx get result."""
+    try:
+        console.render_state(ForwardCommand(state=_state).execute())
     except RuntimeError as e:
         console.print_error(str(e))
         raise typer.Exit(1)
