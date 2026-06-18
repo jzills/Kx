@@ -93,7 +93,6 @@ kx port-forward 2 8080:80
 # navigate history after multiple gets
 kx get pods
 kx get deployments
-kx back              # step back to the pods result
 kx logs 1            # logs from pod index 1
 kx state --all       # review full history
 
@@ -108,7 +107,6 @@ kx delete 3
 ```
 $ kx get pods          # saves a new entry, cursor advances
 $ kx get deployments   # saves another entry, cursor advances
-$ kx back              # cursor steps back — now on the pods result
 $ kx logs 1            # resolves index 1 from the pods result
 $ kx state --all       # lists all history entries and the current position
 ```
