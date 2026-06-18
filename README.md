@@ -47,20 +47,28 @@ All subsequent commands reference resources by their `X` index from the last `kx
 
 ### Commands
 
+<!-- commands-table-start -->
 | Command | Description |
 |---|---|
-| `kx get <resource> [--match\|-m <str>] [kubectl flags...]` | List resources with index numbers; optionally filter by name substring |
-| `kx describe <index> [kubectl flags...]` | Show `kubectl describe` output for an indexed resource |
-| `kx events <index>` | Show Kubernetes events for the resource |
-| `kx labels <index>` | Show labels for an indexed resource |
-| `kx logs <index> [kubectl flags...]` | Stream logs; aggregates across pods for Deployments, StatefulSets, DaemonSets, and Services |
-| `kx yaml <index>` | Print the raw YAML manifest |
-| `kx exec <index> [cmd] [kubectl flags...]` | Open an interactive shell in a pod (bash → sh fallback); pass a custom command with `cmd` |
-| `kx edit <index> [kubectl flags...]` | Open the resource in your editor via `kubectl edit` |
-| `kx delete <index> [-y]` | Delete the resource (prompts for confirmation; `-y` skips it) |
-| `kx tree <index> [--index\|-i]` | Show the ownership graph for a resource; `--index` assigns indexes to tree nodes |
-| `kx port-forward <index> <port> [kubectl flags...]` | Forward a local port to a resource (supports Pod, Deployment, ReplicaSet, StatefulSet, DaemonSet, Service) |
-| `kx state` | Show the current state (namespace and indexed resources from the last `kx get`) |
+| `kx get <resource> [--match/-m text] [kubectl flags...]` | List resources and assign index numbers for use with other commands. |
+| `kx describe <indexes>... [kubectl flags...]` | Show full kubectl describe output for one or more indexed resources. |
+| `kx events <indexes>...` | Show Kubernetes events for one or more indexed resources. |
+| `kx logs <index> [kubectl flags...]` | Stream logs for an indexed resource; aggregates across pods for Deployments, StatefulSets, DaemonSets, and Services. |
+| `kx labels <indexes>... [--selector/-s]` | Show labels for one or more indexed resources; --selector formats output as a label selector. |
+| `kx yaml <indexes>... [--show text]` | Print the raw YAML manifest for one or more indexed resources; --show filters to specific top-level fields. |
+| `kx delete <indexes>... [--yes/-y]` | Delete one or more indexed resources (prompts for confirmation unless --yes). |
+| `kx edit <index> [kubectl flags...]` | Open an indexed resource in your editor via kubectl edit. |
+| `kx exec <index> [<cmd>...] [kubectl flags...]` | Open an interactive shell in an indexed pod (bash, falling back to sh). |
+| `kx tree <index> [--index/-i]` | Show the ownership graph for an indexed resource; --index assigns indexes to tree nodes. |
+| `kx rollout <action> <index>` | Run a rollout action (status, restart, pause, resume, history, undo) on a Deployment, StatefulSet, or DaemonSet. |
+| `kx scale <index> <replicas>` | Scale an indexed Deployment, StatefulSet, or ReplicaSet to a given replica count. |
+| `kx port-forward <index> <port> [kubectl flags...]` | Forward a local port to an indexed resource (Pod, Deployment, ReplicaSet, StatefulSet, DaemonSet, Service). |
+| `kx namespace <index>` | Switch to an indexed namespace; alias: kx ns (run kx get namespaces first). |
+| `kx state [<position>] [--all/-a]` | Show current state, jump to a history position, or list all entries with --all. |
+| `kx drop <position>` | Remove a history entry by position (shown in kx state --all). |
+| `kx back` | Navigate to the previous kx get result. |
+| `kx forward` | Navigate to the next kx get result. |
+<!-- commands-table-end -->
 
 ### Example workflow
 
@@ -82,13 +90,30 @@ kx exec 1 -- env     # run a specific command
 kx get services
 kx port-forward 2 8080:80
 
+# navigate history after multiple gets
+kx get pods
+kx get deployments
+kx back              # step back to the pods result
+kx logs 1            # logs from pod index 1
+kx state --all       # review full history
+
 # clean up
 kx delete 3
 ```
 
 ## State
 
-`kx` saves the last `get` result to `~/.kx_state.json`. Index-based commands read from this file, so switching namespaces or resource types requires a new `kx get`.
+`kx` maintains a history of up to 10 `kx get` results in `~/.kx_state.json`. A cursor tracks your current position; index-based commands always resolve against the entry at the cursor.
+
+```
+$ kx get pods          # saves a new entry, cursor advances
+$ kx get deployments   # saves another entry, cursor advances
+$ kx back              # cursor steps back — now on the pods result
+$ kx logs 1            # resolves index 1 from the pods result
+$ kx state --all       # lists all history entries and the current position
+```
+
+Use `kx state <position>` to jump directly to any history entry, and `kx drop <position>` to remove one.
 
 ## Development
 

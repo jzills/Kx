@@ -166,7 +166,7 @@ def labels(
         False, "--selector", "-s", help="Output as a copy-pastable label selector"
     ),
 ):
-    """Show labels for one or more indexed resources."""
+    """Show labels for one or more indexed resources; --selector formats output as a label selector."""
     command = LabelsCommand(state=_state, kubectl=_kubectl)
     for position, index in enumerate(indexes):
         try:
@@ -199,7 +199,7 @@ def yaml(
         help="Comma-separated top-level YAML fields to display (e.g. metadata,spec)",
     ),
 ):
-    """Print the raw YAML manifest for one or more indexed resources."""
+    """Print the raw YAML manifest for one or more indexed resources; --show filters to specific top-level fields."""
     command = YamlCommand(state=_state, kubectl=_kubectl)
     fields = [field.strip() for field in show.split(",")] if show else None
     for index in indexes:
@@ -275,7 +275,7 @@ def tree(
         False, "--index", "-i", help="Assign indexes to tree nodes and update state"
     ),
 ):
-    """Show the ownership graph for an indexed resource (deployments, statefulsets, etc.)."""
+    """Show the ownership graph for an indexed resource; --index assigns indexes to tree nodes."""
     name, ns, kind = _state.fields(index)
     console.print_banner(kind, name, namespace=ns)
     command = TreeCommand(
@@ -289,7 +289,7 @@ def tree(
 
 @app.command(cls=StyledCommand)
 def rollout(action: RolloutAction, index: int):
-    """Show rollout status or restart an indexed Deployment, StatefulSet, or DaemonSet."""
+    """Run a rollout action (status, restart, pause, resume, history, undo) on a Deployment, StatefulSet, or DaemonSet."""
     name, ns, kind = _state.fields(index)
     console.print_banner(kind, name, namespace=ns)
     command = RolloutCommand(kubectl=_kubectl, state=_state)
@@ -322,7 +322,7 @@ def scale(index: int, replicas: int):
     context_settings={"allow_extra_args": True, "ignore_unknown_options": True},
 )
 def port_forward(ctx: typer.Context, index: int, port: str):
-    """Port forward to the specified resource at index."""
+    """Forward a local port to an indexed resource (Pod, Deployment, ReplicaSet, StatefulSet, DaemonSet, Service)."""
     name, ns, kind = _state.fields(index)
     console.print_banner(kind, name, namespace=ns, extra=port)
     command = PortForwardCommand(kubectl=_kubectl, state=_state)
@@ -335,7 +335,7 @@ def port_forward(ctx: typer.Context, index: int, port: str):
 
 @app.command(cls=StyledCommand)
 def namespace(index: int):
-    """Switch to an indexed namespace (run kx get namespaces first)."""
+    """Switch to an indexed namespace; alias: kx ns (run kx get namespaces first)."""
     command = NamespaceCommand(state=_state, kubectl=_kubectl)
     try:
         console.print_success(f"Switched to '{command.execute(index)}'")
