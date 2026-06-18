@@ -1,4 +1,6 @@
 import re
+import json
+from dataclasses import asdict
 from typing import Optional
 
 import typer
@@ -6,10 +8,13 @@ import typer.rich_utils
 from typer.core import TyperCommand
 
 from kx import console
+from kx.commands.back import BackCommand
 from kx.commands.delete import DeleteCommand
+from kx.commands.drop import DropCommand
 from kx.commands.labels import LabelsCommand
 from kx.commands.describe import DescribeCommand
 from kx.commands.edit import EditCommand
+from kx.commands.forward import ForwardCommand
 from kx.commands.events import EventsCommand
 from kx.commands.exec import ExecCommand
 from kx.commands.get import GetCommand
@@ -289,9 +294,12 @@ def rollout(action: RolloutAction, index: int):
     console.print_banner(kind, name, namespace=ns)
     command = RolloutCommand(kubectl=_kubectl, state=_state)
     try:
-        result = command.execute(index, restart=(action == RolloutAction.restart))
+        result = command.execute(index, action)
         if result:
-            console.print_success(result)
+            if action == RolloutAction.history:
+                console.print_raw(result)
+            else:
+                console.print_success(result)
     except ValueError as e:
         console.print_error(str(e))
         raise typer.Exit(1)
@@ -351,11 +359,54 @@ def namespace_alias(index: int):
 
 
 @app.command(cls=StyledCommand)
-def state():
-    """Show the current state file."""
-    command = StateCommand(state=_state)
+def state(
+    position: Optional[int] = typer.Argument(
+        default=None, help="Jump to a history position."
+    ),
+    all_entries: bool = typer.Option(
+        False, "--all", "-a", help="Show full history stack."
+    ),
+):
+    """Show current state, jump to a history position, or list all entries with --all."""
     try:
-        console.render_state(command.execute())
+        if all_entries:
+            console.render_state_history(_state.load_history())
+        elif position is not None:
+            console.render_state(
+                json.dumps(asdict(_state.navigate_to(position)), indent=2)
+            )
+        else:
+            console.render_state(StateCommand(state=_state).execute())
+    except RuntimeError as e:
+        console.print_error(str(e))
+        raise typer.Exit(1)
+
+
+@app.command(cls=StyledCommand)
+def drop(position: int):
+    """Remove a history entry by position (shown in kx state --all)."""
+    try:
+        console.render_state_history(DropCommand(state=_state).execute(position))
+    except RuntimeError as e:
+        console.print_error(str(e))
+        raise typer.Exit(1)
+
+
+@app.command(cls=StyledCommand)
+def back():
+    """Navigate to the previous kx get result."""
+    try:
+        console.render_state(BackCommand(state=_state).execute())
+    except RuntimeError as e:
+        console.print_error(str(e))
+        raise typer.Exit(1)
+
+
+@app.command(cls=StyledCommand)
+def forward():
+    """Navigate to the next kx get result."""
+    try:
+        console.render_state(ForwardCommand(state=_state).execute())
     except RuntimeError as e:
         console.print_error(str(e))
         raise typer.Exit(1)
