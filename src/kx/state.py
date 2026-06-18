@@ -22,8 +22,11 @@ class StateHistory:
 class StateServiceProtocol(Protocol):
     def save(self, state: State) -> None: ...
     def load(self) -> State: ...
+    def load_history(self) -> StateHistory: ...
     def fields(self, index: int) -> tuple[str, str, str]: ...
     def navigate(self, delta: int) -> State: ...
+    def navigate_to(self, position: int) -> State: ...
+    def drop(self, position: int) -> StateHistory: ...
 
 
 _STATE_FILE = Path.home() / ".kx_state.json"
@@ -60,11 +63,33 @@ class StateService:
         history = self._load_history()
         return history.states[history.cursor]
 
+    def load_history(self) -> StateHistory:
+        return self._load_history()
+
     def navigate(self, delta: int) -> State:
         history = self._load_history()
         history.cursor = max(0, min(len(history.states) - 1, history.cursor + delta))
         self._save_history(history)
         return history.states[history.cursor]
+
+    def navigate_to(self, position: int) -> State:
+        history = self._load_history()
+        history.cursor = max(0, min(len(history.states) - 1, position - 1))
+        self._save_history(history)
+        return history.states[history.cursor]
+
+    def drop(self, position: int) -> StateHistory:
+        history = self._load_history()
+        if len(history.states) == 1:
+            raise RuntimeError("Cannot drop the only state entry.")
+        index = max(0, min(len(history.states) - 1, position - 1))
+        history.states.pop(index)
+        if index < history.cursor:
+            history.cursor -= 1
+        else:
+            history.cursor = min(history.cursor, len(history.states) - 1)
+        self._save_history(history)
+        return history
 
     def fields(self, index: int) -> tuple[str, str, str]:
         state = self.load()
