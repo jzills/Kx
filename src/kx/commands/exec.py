@@ -4,13 +4,17 @@ from kx.kinds import Kind
 from kx.kubectl import KubectlServiceProtocol
 from kx.state import StateServiceProtocol
 
-_SHELLS = ["bash", "sh"]
-
 
 class ExecCommand:
-    def __init__(self, state: StateServiceProtocol, kubectl: KubectlServiceProtocol):
+    def __init__(
+        self,
+        state: StateServiceProtocol,
+        kubectl: KubectlServiceProtocol,
+        shells: tuple[str, ...] = ("bash", "sh"),
+    ):
         self.state = state
         self.kubectl = kubectl
+        self.shells = shells
 
     def execute(
         self, index: int, cmd: list[str] | None, extra_args: list[str] = []
@@ -26,7 +30,7 @@ class ExecCommand:
             if rc != 0:
                 raise ValueError(f"Command failed in container (exit {rc}).")
         else:
-            for shell in _SHELLS:
+            for shell in self.shells:
                 probe_rc = self.kubectl.probe(
                     [
                         "exec",

@@ -26,6 +26,7 @@ from kx.commands.scale import ScaleCommand
 from kx.commands.state import StateCommand
 from kx.commands.tree import TreeCommand
 from kx.commands.yaml import YamlCommand
+from kx.config import load_config
 from kx.events import EventsService
 from kx.graph import build_indexed_tree, build_tree
 from kx.index import IndexService
@@ -79,8 +80,9 @@ def callback(
         raise typer.Exit()
 
 
+_config = load_config()
 _kubectl = KubectlService()
-_state = StateService()
+_state = StateService(max_history=_config.max_history)
 _events = EventsService()
 _index = IndexService()
 
@@ -260,7 +262,7 @@ def exec_cmd(
     """Open an interactive shell in an indexed pod (bash, falling back to sh)."""
     name, ns, kind = _state.fields(index)
     console.print_banner(kind, name, namespace=ns)
-    command = ExecCommand(state=_state, kubectl=_kubectl)
+    command = ExecCommand(state=_state, kubectl=_kubectl, shells=_config.shells)
     try:
         command.execute(index, cmd, ctx.args)
     except ValueError as e:

@@ -94,6 +94,14 @@ class TestStateServiceHistory:
             history = svc._load_history()
         assert len(history.states) == 10
 
+    def test_custom_max_history_respected(self, tmp_path):
+        with _patched(tmp_path):
+            svc = StateService(max_history=3)
+            for number in range(5):
+                svc.save(State(resources={f"pod-{number}": "Pod"}))
+            history = svc._load_history()
+        assert len(history.states) == 3
+
     def test_history_cap_drops_oldest(self, tmp_path):
         with _patched(tmp_path):
             svc = StateService()

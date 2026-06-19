@@ -5,13 +5,16 @@ from kx.commands.exec import ExecCommand
 from kx.kinds import Kind
 
 
-def _make_command(name="nginx", namespace="default", kind=Kind.Pod):
+def _make_command(name="nginx", namespace="default", kind=Kind.Pod, shells=None):
     state = MagicMock()
     state.fields.return_value = (name, namespace, kind)
     kubectl = MagicMock()
     kubectl.run_interactive.return_value = 0
     kubectl.probe.return_value = 0
-    return ExecCommand(state=state, kubectl=kubectl), state, kubectl
+    kwargs = {"state": state, "kubectl": kubectl}
+    if shells is not None:
+        kwargs["shells"] = shells
+    return ExecCommand(**kwargs), state, kubectl
 
 
 class TestExecCommand:
@@ -94,4 +97,13 @@ class TestExecCommand:
         kubectl.run_interactive.assert_called_once_with(
             ["exec", "-it", "nginx", "-n", "default", "-c", "sidecar", "--", "sh"],
             stderr=subprocess.DEVNULL,
+        )
+
+    def test_custom_shells_used_in_order(self):
+        cmd, _, kubectl = _make_command(shells=("zsh", "bash"))
+        kubectl.probe.side_effect = [1, 0]
+        cmd.execute(1, None)
+        assert kubectl.probe.call_count == 2
+        kubectl.run_interactive.assert_called_once_with(
+            ["exec", "-it", "nginx", "-n", "default", "--", "bash"]
         )

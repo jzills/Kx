@@ -29,11 +29,13 @@ class StateServiceProtocol(Protocol):
     def drop(self, position: int) -> StateHistory: ...
 
 
-_STATE_FILE = Path.home() / ".kx_state.json"
-_MAX_HISTORY = 10
+_STATE_FILE = Path.home() / ".kx" / "state.json"
 
 
 class StateService:
+    def __init__(self, max_history: int = 10) -> None:
+        self.max_history = max_history
+
     def _load_history(self) -> StateHistory:
         if not _STATE_FILE.exists():
             raise RuntimeError("No state found. Run `kx get <resource>` first.")
@@ -44,6 +46,7 @@ class StateService:
         return StateHistory(states=states, cursor=data["cursor"])
 
     def _save_history(self, history: StateHistory) -> None:
+        _STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
         data = {
             "states": [asdict(state) for state in history.states],
             "cursor": history.cursor,
@@ -56,7 +59,7 @@ class StateService:
             new_states = history.states[: history.cursor + 1] + [state]
         except RuntimeError:
             new_states = [state]
-        new_states = new_states[-_MAX_HISTORY:]
+        new_states = new_states[-self.max_history :]
         self._save_history(StateHistory(states=new_states, cursor=len(new_states) - 1))
 
     def load(self) -> State:
