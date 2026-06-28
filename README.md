@@ -1,8 +1,14 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/jzills/kx/main/assets/banner.svg" alt="kx — kubectl, indexed." width="800"/>
+  <img src="assets/banner.svg" alt="kx — kubectl, indexed." width="800"/>
 </div>
 
 <br>
+
+<div align="center">
+
+# kubectl, indexed
+
+</div>
 
 <div align="center">
 

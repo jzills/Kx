@@ -263,7 +263,7 @@ _KX_ART = [
 def print_help(commands: list[tuple[str, str]]) -> None:
     _console.print()
     for line in _KX_ART:
-        _console.print(f"[bold {COLOR_HEADER}]{line}[/bold {COLOR_HEADER}]")
+        _console.print(line, style=COLOR_HEADER, markup=False, highlight=False)
     _console.print(f"[{COLOR_DIM}]kubectl, indexed.[/{COLOR_DIM}]")
     _console.print()
     _console.rule(style=COLOR_DIM)
