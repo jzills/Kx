@@ -1,3 +1,4 @@
+import json
 import pytest
 from typer import Exit as ClickExit
 from unittest.mock import patch
@@ -50,6 +51,276 @@ class TestStateServiceSaveLoad:
         with patch("kx.state._STATE_FILE", state_file):
             StateService().save(state)
         assert state_file.exists()
+
+    def test_load_returns_most_recent_after_multiple_saves(self, tmp_path):
+        state1 = State(resources={"nginx": "Pod"}, namespace="default")
+        state2 = State(resources={"myapp": "Deployment"}, namespace="prod")
+        with _patched(tmp_path):
+            svc = StateService()
+            svc.save(state1)
+            svc.save(state2)
+            loaded = svc.load()
+        assert loaded == state2
+
+    def test_legacy_format_loads_correctly(self, tmp_path):
+        state_file = tmp_path / "kx_state.json"
+        state_file.write_text(
+            json.dumps({"resources": {"nginx": "Pod"}, "namespace": "staging"})
+        )
+        with patch("kx.state._STATE_FILE", state_file):
+            loaded = StateService().load()
+        assert loaded == State(resources={"nginx": "Pod"}, namespace="staging")
+
+
+class TestStateServiceHistory:
+    def test_history_preserves_previous_states(self, tmp_path):
+        state1 = State(resources={"nginx": "Pod"})
+        state2 = State(resources={"myapp": "Deployment"})
+        with _patched(tmp_path):
+            svc = StateService()
+            svc.save(state1)
+            svc.save(state2)
+            history = svc._load_history()
+        assert len(history.states) == 2
+        assert history.states[0] == state1
+        assert history.states[1] == state2
+        assert history.cursor == 1
+
+    def test_history_capped_at_max(self, tmp_path):
+        with _patched(tmp_path):
+            svc = StateService()
+            for number in range(12):
+                svc.save(State(resources={f"pod-{number}": "Pod"}))
+            history = svc._load_history()
+        assert len(history.states) == 10
+
+    def test_custom_max_history_respected(self, tmp_path):
+        with _patched(tmp_path):
+            svc = StateService(max_history=3)
+            for number in range(5):
+                svc.save(State(resources={f"pod-{number}": "Pod"}))
+            history = svc._load_history()
+        assert len(history.states) == 3
+
+    def test_history_cap_drops_oldest(self, tmp_path):
+        with _patched(tmp_path):
+            svc = StateService()
+            for number in range(11):
+                svc.save(State(resources={f"pod-{number}": "Pod"}))
+            history = svc._load_history()
+        assert "pod-0" not in history.states[0].resources
+        assert "pod-1" in history.states[0].resources
+
+    def test_navigate_back_returns_previous_state(self, tmp_path):
+        state1 = State(resources={"nginx": "Pod"})
+        state2 = State(resources={"myapp": "Deployment"})
+        with _patched(tmp_path):
+            svc = StateService()
+            svc.save(state1)
+            svc.save(state2)
+            result = svc.navigate(-1)
+        assert result == state1
+
+    def test_navigate_forward_returns_newer_state(self, tmp_path):
+        state1 = State(resources={"nginx": "Pod"})
+        state2 = State(resources={"myapp": "Deployment"})
+        with _patched(tmp_path):
+            svc = StateService()
+            svc.save(state1)
+            svc.save(state2)
+            svc.navigate(-1)
+            result = svc.navigate(+1)
+        assert result == state2
+
+    def test_navigate_back_clamps_at_oldest(self, tmp_path):
+        state = State(resources={"nginx": "Pod"})
+        with _patched(tmp_path):
+            svc = StateService()
+            svc.save(state)
+            result = svc.navigate(-1)
+        assert result == state
+
+    def test_navigate_forward_clamps_at_newest(self, tmp_path):
+        state = State(resources={"nginx": "Pod"})
+        with _patched(tmp_path):
+            svc = StateService()
+            svc.save(state)
+            result = svc.navigate(+1)
+        assert result == state
+
+    def test_new_save_after_back_truncates_forward_history(self, tmp_path):
+        state1 = State(resources={"nginx": "Pod"})
+        state2 = State(resources={"myapp": "Deployment"})
+        state3 = State(resources={"svc": "Service"})
+        with _patched(tmp_path):
+            svc = StateService()
+            svc.save(state1)
+            svc.save(state2)
+            svc.navigate(-1)  # go back to state1
+            svc.save(state3)  # should replace state2 in forward history
+            history = svc._load_history()
+        assert len(history.states) == 2
+        assert history.states[0] == state1
+        assert history.states[1] == state3
+
+    def test_navigate_persists_cursor(self, tmp_path):
+        state1 = State(resources={"nginx": "Pod"})
+        state2 = State(resources={"myapp": "Deployment"})
+        with _patched(tmp_path):
+            svc = StateService()
+            svc.save(state1)
+            svc.save(state2)
+            svc.navigate(-1)
+            loaded = svc.load()
+        assert loaded == state1
+
+    def test_navigate_to_jumps_to_position(self, tmp_path):
+        state1 = State(resources={"nginx": "Pod"})
+        state2 = State(resources={"myapp": "Deployment"})
+        state3 = State(resources={"svc": "Service"})
+        with _patched(tmp_path):
+            svc = StateService()
+            svc.save(state1)
+            svc.save(state2)
+            svc.save(state3)
+            result = svc.navigate_to(1)
+        assert result == state1
+
+    def test_navigate_to_middle_position(self, tmp_path):
+        state1 = State(resources={"nginx": "Pod"})
+        state2 = State(resources={"myapp": "Deployment"})
+        state3 = State(resources={"svc": "Service"})
+        with _patched(tmp_path):
+            svc = StateService()
+            svc.save(state1)
+            svc.save(state2)
+            svc.save(state3)
+            result = svc.navigate_to(2)
+        assert result == state2
+
+    def test_navigate_to_clamps_below_one(self, tmp_path):
+        state1 = State(resources={"nginx": "Pod"})
+        with _patched(tmp_path):
+            svc = StateService()
+            svc.save(state1)
+            result = svc.navigate_to(0)
+        assert result == state1
+
+    def test_navigate_to_clamps_above_max(self, tmp_path):
+        state1 = State(resources={"nginx": "Pod"})
+        state2 = State(resources={"myapp": "Deployment"})
+        with _patched(tmp_path):
+            svc = StateService()
+            svc.save(state1)
+            svc.save(state2)
+            result = svc.navigate_to(99)
+        assert result == state2
+
+    def test_navigate_to_persists_cursor(self, tmp_path):
+        state1 = State(resources={"nginx": "Pod"})
+        state2 = State(resources={"myapp": "Deployment"})
+        state3 = State(resources={"svc": "Service"})
+        with _patched(tmp_path):
+            svc = StateService()
+            svc.save(state1)
+            svc.save(state2)
+            svc.save(state3)
+            svc.navigate_to(2)
+            loaded = svc.load()
+        assert loaded == state2
+
+    def test_load_history_returns_state_history(self, tmp_path):
+        state1 = State(resources={"nginx": "Pod"})
+        state2 = State(resources={"myapp": "Deployment"})
+        with _patched(tmp_path):
+            svc = StateService()
+            svc.save(state1)
+            svc.save(state2)
+            history = svc.load_history()
+        assert len(history.states) == 2
+        assert history.cursor == 1
+
+    def test_drop_removes_entry(self, tmp_path):
+        state1 = State(resources={"nginx": "Pod"})
+        state2 = State(resources={"myapp": "Deployment"})
+        state3 = State(resources={"svc": "Service"})
+        with _patched(tmp_path):
+            svc = StateService()
+            svc.save(state1)
+            svc.save(state2)
+            svc.save(state3)
+            history = svc.drop(2)
+        assert len(history.states) == 2
+        assert state2 not in history.states
+
+    def test_drop_before_cursor_decrements_cursor(self, tmp_path):
+        state1 = State(resources={"nginx": "Pod"})
+        state2 = State(resources={"myapp": "Deployment"})
+        state3 = State(resources={"svc": "Service"})
+        with _patched(tmp_path):
+            svc = StateService()
+            svc.save(state1)
+            svc.save(state2)
+            svc.save(state3)
+            history = svc.drop(1)
+        assert history.cursor == 1
+        assert history.states[history.cursor] == state3
+
+    def test_drop_at_cursor_stays_on_next_entry(self, tmp_path):
+        state1 = State(resources={"nginx": "Pod"})
+        state2 = State(resources={"myapp": "Deployment"})
+        state3 = State(resources={"svc": "Service"})
+        with _patched(tmp_path):
+            svc = StateService()
+            svc.save(state1)
+            svc.save(state2)
+            svc.save(state3)
+            svc.navigate(-1)  # cursor → 1 (state2)
+            history = svc.drop(2)
+        assert history.states[history.cursor] == state3
+
+    def test_drop_last_entry_at_cursor_moves_to_new_last(self, tmp_path):
+        state1 = State(resources={"nginx": "Pod"})
+        state2 = State(resources={"myapp": "Deployment"})
+        with _patched(tmp_path):
+            svc = StateService()
+            svc.save(state1)
+            svc.save(state2)
+            history = svc.drop(2)
+        assert history.cursor == 0
+        assert history.states[history.cursor] == state1
+
+    def test_drop_after_cursor_leaves_cursor_unchanged(self, tmp_path):
+        state1 = State(resources={"nginx": "Pod"})
+        state2 = State(resources={"myapp": "Deployment"})
+        state3 = State(resources={"svc": "Service"})
+        with _patched(tmp_path):
+            svc = StateService()
+            svc.save(state1)
+            svc.save(state2)
+            svc.save(state3)
+            svc.navigate(-2)  # cursor → 0 (state1)
+            history = svc.drop(3)
+        assert history.cursor == 0
+        assert history.states[history.cursor] == state1
+
+    def test_drop_only_entry_raises(self, tmp_path):
+        with _patched(tmp_path):
+            svc = StateService()
+            svc.save(State(resources={"nginx": "Pod"}))
+            with pytest.raises(RuntimeError, match="only state"):
+                svc.drop(1)
+
+    def test_drop_clamps_out_of_bounds_position(self, tmp_path):
+        state1 = State(resources={"nginx": "Pod"})
+        state2 = State(resources={"myapp": "Deployment"})
+        with _patched(tmp_path):
+            svc = StateService()
+            svc.save(state1)
+            svc.save(state2)
+            history = svc.drop(99)
+        assert len(history.states) == 1
+        assert state2 not in history.states
 
 
 class TestStateServiceFields:

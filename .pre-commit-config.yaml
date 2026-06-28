@@ -5,3 +5,11 @@ repos:
       - id: ruff
         args: [--fix]
       - id: ruff-format
+  - repo: local
+    hooks:
+      - id: gen-command-table
+        name: Regenerate README command table
+        language: system
+        entry: python scripts/gen_command_table.py
+        pass_filenames: false
+        always_run: true

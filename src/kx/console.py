@@ -5,6 +5,7 @@ from rich.console import Console
 from rich.table import Table
 
 from kx.kinds import plural_display
+from kx.state import StateHistory
 
 COLOR_HEADER = "#3fb950"
 COLOR_DIM = "#7d8590"
@@ -262,7 +263,7 @@ _KX_ART = [
 def print_help(commands: list[tuple[str, str]]) -> None:
     _console.print()
     for line in _KX_ART:
-        _console.print(f"[bold {COLOR_HEADER}]{line}[/bold {COLOR_HEADER}]")
+        _console.print(line, style=COLOR_HEADER, markup=False, highlight=False)
     _console.print(f"[{COLOR_DIM}]kubectl, indexed.[/{COLOR_DIM}]")
     _console.print()
     _console.rule(style=COLOR_DIM)
@@ -285,6 +286,42 @@ def print_help(commands: list[tuple[str, str]]) -> None:
     _console.print(
         f"  [{COLOR_BODY}]{'--help':<14}[/{COLOR_BODY}]  [{COLOR_DIM}]Show this message and exit.[/{COLOR_DIM}]"
     )
+
+
+def render_state_history(history: StateHistory) -> None:
+    total = len(history.states)
+    label = "entry" if total == 1 else "entries"
+    _console.print(f"[{COLOR_DIM}]History · {total} {label}[/{COLOR_DIM}]")
+    table = Table(
+        show_header=True,
+        header_style=f"bold {COLOR_HEADER}",
+        box=None,
+        padding=(0, 2),
+    )
+    table.add_column("X", justify="right")
+    table.add_column("")
+    table.add_column("KIND")
+    table.add_column("NAMESPACE")
+    table.add_column("ITEMS", justify="right")
+    for position, state in enumerate(history.states, start=1):
+        is_current = (position - 1) == history.cursor
+        marker = f"[bold {COLOR_HEADER}]→[/bold {COLOR_HEADER}]" if is_current else ""
+        unique_kinds = set(state.resources.values())
+        kind_label = (
+            plural_display(next(iter(unique_kinds)))
+            if len(unique_kinds) == 1
+            else "Mixed"
+        )
+        count = len(state.resources)
+        row_color = COLOR_BODY if is_current else COLOR_DIM
+        table.add_row(
+            f"[{row_color}]{position}[/{row_color}]",
+            marker,
+            f"[{row_color}]{kind_label}[/{row_color}]",
+            f"[{row_color}]{state.namespace}[/{row_color}]",
+            f"[{row_color}]{count}[/{row_color}]",
+        )
+    _console.print(table)
 
 
 def render_labels(labels: dict[str, str]) -> None:
